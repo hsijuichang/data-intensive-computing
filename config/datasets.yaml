@@ -1,0 +1,182 @@
+datasets:
+  - name: yellow_tripdata
+    file_pattern: yellow_tripdata_2024-*.parquet
+    format: parquet
+    entity: A completed New York City yellow-taxi trip.
+    primary_key:
+      - VendorID
+      - tpep_pickup_datetime
+      - tpep_dropoff_datetime
+      - PULocationID
+      - DOLocationID
+      - trip_distance
+      - total_amount
+    primary_key_note: The source has no official trip identifier; these fields form a candidate fingerprint rather than a guaranteed natural key.
+    join_attributes:
+      - PULocationID -> taxi_zone_lookup.LocationID
+      - DOLocationID -> taxi_zone_lookup.LocationID
+    temporal:
+      - name: pickup_timestamp
+        expression: '"tpep_pickup_datetime"'
+      - name: dropoff_timestamp
+        expression: '"tpep_dropoff_datetime"'
+    categorical:
+      - VendorID
+      - RatecodeID
+      - store_and_fwd_flag
+      - payment_type
+      - PULocationID
+      - DOLocationID
+    numeric:
+      - name: passenger_count
+        expression: '"passenger_count"'
+        condition: value >= 0
+      - name: trip_distance
+        expression: '"trip_distance"'
+        condition: value >= 0
+      - name: total_amount
+        expression: '"total_amount"'
+    custom_checks:
+      - name: dropoff_before_pickup
+        condition: '"tpep_dropoff_datetime" < "tpep_pickup_datetime"'
+      - name: pickup_outside_2024_q1_source_period
+        condition: '"tpep_pickup_datetime" < TIMESTAMP ''2024-01-01'' OR "tpep_pickup_datetime" >= TIMESTAMP ''2024-04-01'''
+      - name: suspicious_trip_distance_over_1000
+        condition: '"trip_distance" > 1000'
+    growth: Append-only monthly fact data; trip rows and monetary measures grow continuously.
+
+  - name: taxi_zone_lookup
+    file_pattern: taxi_zone_lookup.csv
+    format: csv
+    entity: A New York City taxi zone.
+    primary_key:
+      - LocationID
+    join_attributes:
+      - LocationID -> yellow_tripdata.PULocationID
+      - LocationID -> yellow_tripdata.DOLocationID
+    temporal: []
+    categorical:
+      - Borough
+      - Zone
+      - service_zone
+    numeric:
+      - name: location_id
+        expression: '"LocationID"'
+        condition: value > 0
+    custom_checks: []
+    growth: Slowly changing lookup data; it grows only when the authority adds or changes zones.
+
+  - name: air_quality_hourly
+    file_pattern: hourly_88101_2024.csv
+    format: csv
+    entity: An hourly PM2.5 observation made by a monitoring instrument at an air-quality site.
+    primary_key:
+      - State Code
+      - County Code
+      - Site Num
+      - Parameter Code
+      - POC
+      - Date Local
+      - Time Local
+    primary_key_note: This is the candidate observation grain and must be checked because the source provides no declared constraint.
+    join_attributes:
+      - State Code + County Code + Site Num -> monitoring-site reference data
+      - Latitude + Longitude -> spatial datasets
+      - Date Local + Time Local -> hourly weather observations, only when location/time-zone compatibility is established
+    temporal:
+      - name: local_timestamp
+        expression: 'try_strptime("Date Local" || '' '' || "Time Local", ''%Y-%m-%d %H:%M'')'
+      - name: gmt_timestamp
+        expression: 'try_strptime("Date GMT" || '' '' || "Time GMT", ''%Y-%m-%d %H:%M'')'
+      - name: last_change_date
+        expression: 'try_strptime("Date of Last Change", ''%Y-%m-%d'')'
+    categorical:
+      - State Code
+      - County Code
+      - Site Num
+      - Parameter Code
+      - POC
+      - Datum
+      - Parameter Name
+      - Units of Measure
+      - Qualifier
+      - Method Type
+      - Method Code
+      - Method Name
+      - State Name
+      - County Name
+    numeric:
+      - name: latitude
+        expression: '"Latitude"'
+        condition: value BETWEEN -90 AND 90
+      - name: longitude
+        expression: '"Longitude"'
+        condition: value BETWEEN -180 AND 180
+      - name: sample_measurement
+        expression: '"Sample Measurement"'
+      - name: mdl
+        expression: '"MDL"'
+      - name: uncertainty
+        expression: '"Uncertainty"'
+    custom_checks:
+      - name: non_hour_aligned_local_timestamp
+        condition: 'minute(try_strptime("Date Local" || '' '' || "Time Local", ''%Y-%m-%d %H:%M'')) <> 0'
+    growth: Append-only hourly fact data; observations grow with time, sites, pollutants, and instruments.
+
+  - name: weather_hourly
+    file_pattern: weather.csv
+    format: csv
+    entity: An hourly weather observation for the single implicit location represented by this file.
+    primary_key:
+      - year
+      - month
+      - day
+      - hour
+    primary_key_note: The key is valid only while the file represents one location; a station/location identifier is required when multiple locations are ingested.
+    join_attributes:
+      - year + month + day + hour -> other hourly facts, only after location and time-zone alignment
+    temporal:
+      - name: observation_timestamp
+        expression: 'try_strptime("year" || ''-'' || "month" || ''-'' || "day" || '' '' || "hour" || '':00'', ''%Y-%m-%d %H:%M'')'
+    categorical:
+      - temp_source
+      - rhum_source
+      - prcp_source
+      - snwd_source
+      - wdir_source
+      - wspd_source
+      - wpgt_source
+      - pres_source
+      - cldc_source
+      - coco_source
+      - coco
+    numeric:
+      - name: temperature
+        expression: '"temp"'
+        condition: value BETWEEN -100 AND 70
+      - name: relative_humidity
+        expression: '"rhum"'
+        condition: value BETWEEN 0 AND 100
+      - name: precipitation
+        expression: '"prcp"'
+        condition: value >= 0
+      - name: snow_depth
+        expression: '"snwd"'
+        condition: value >= 0
+      - name: wind_direction
+        expression: '"wdir"'
+        condition: value BETWEEN 0 AND 360
+      - name: wind_speed
+        expression: '"wspd"'
+        condition: value >= 0
+      - name: wind_gust
+        expression: '"wpgt"'
+        condition: value >= 0
+      - name: pressure
+        expression: '"pres"'
+        condition: value > 0
+      - name: cloud_cover
+        expression: '"cldc"'
+        condition: value BETWEEN 0 AND 8
+    custom_checks: []
+    growth: Append-only hourly fact data; observations grow with time and, in a future model, locations.
