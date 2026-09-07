@@ -1,6 +1,3 @@
-<<<<<<< HEAD
-# data-intensive-computing
-=======
 # Data-Intensive Computing - Lab 1
 
 This repository contains the Week 1 implementation for Tasks 1, 3, and 4. The `data/` folder is not included in the submission because the raw and generated datasets are too large.
