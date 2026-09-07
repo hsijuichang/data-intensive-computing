@@ -32,5 +32,3 @@ data-intensive-computing/
 1. Create `data/raw` in the project root and place the four downloaded datasets there using the filenames shown above.
 2. Run `notebooks/data_catalog.ipynb` to inspect the raw data and export the catalog image.
 3. Run `notebooks/ingestion_framework.ipynb` to create the `processed`, `failed`, and `metadata` Delta outputs.
-
->>>>>>> 3930545 (task 1, 3 and 4, except data)
