@@ -1,22 +1,34 @@
-# Data-Intensive Computing
+# Data-Intensive Computing - Lab 1
 
-## Task 1: source-data profiling
+This repository contains the Week 1 implementation for Tasks 1, 3, and 4. The `data/` folder is not included in the submission because the raw and generated datasets are too large.
 
-The Task 1 profiler performs complete-file analysis of the configured CSV and
-Parquet datasets and writes a reproducible JSON profile.
+## Project structure
 
-```powershell
-python -m data_intensive_computing.profiling
+```text
+data-intensive-computing/
+├── data/
+│   ├── raw/
+│   │   ├── yellow_tripdata_2024-*.parquet
+│   │   ├── weather.csv
+│   │   ├── hourly_88101_2024.csv
+│   │   └── taxi_zone_lookup.csv
+│   ├── processed/   # Valid standardized Delta data
+│   ├── failed/      # Rejected records and validation errors
+│   └── metadata/    # Ingestion statistics and schema information
+├── notebooks/
+│   ├── data_catalog.ipynb          # Task 1: study data and create the catalog
+│   └── ingestion_framework.ipynb   # Tasks 3 and 4: ingestion and common data model
+├── reports/
+│   ├── data_catalog.png            # Exported Task 1 catalog
+│   └── common_data_model.md        # Task 4 model documentation
+├── README.md
+├── pyproject.toml
+└── uv.lock
 ```
 
-Outputs:
 
-- `docs/task1_data_catalog.md` — interpreted Data Catalog and findings.
-- `artifacts/task1_profile.json` — generated detailed profiling evidence.
-- `config/datasets.yaml` — dataset semantics and profiling rules.
+## How to run
 
-Profile one dataset during development:
-
-```powershell
-python -m data_intensive_computing.profiling --dataset weather_hourly
-```
+1. Create `data/raw` in the project root and place the four downloaded datasets there using the filenames shown above.
+2. Run `notebooks/data_catalog.ipynb` to inspect the raw data and export the catalog image.
+3. Run `notebooks/ingestion_framework.ipynb` to create the `processed`, `failed`, and `metadata` Delta outputs.
