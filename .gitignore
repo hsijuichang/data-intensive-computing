@@ -217,9 +217,5 @@ __marimo__/
 # Streamlit
 .streamlit/secrets.toml
 
-<<<<<<< HEAD
 data/*
-=======
-data/*data/
 .DS_Store
->>>>>>> 3930545 (task 1, 3 and 4, except data)
