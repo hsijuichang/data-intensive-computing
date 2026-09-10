@@ -9,7 +9,9 @@ authors = [
 requires-python = ">=3.14"
 dependencies = [
     "delta-spark>=4.4.0",
+    "duckdb>=1.5.5",
     "pandas>=3.0.5",
+    "pillow>=12.3.0",
     "pyarrow>=25.0.1",
     "pydantic>=2.13.5",
     "pyspark>=4.2.0",
@@ -22,3 +24,9 @@ data-intensive-computing = "data_intensive_computing:main"
 [build-system]
 requires = ["uv_build>=0.12.5,<0.13.0"]
 build-backend = "uv_build"
+
+[dependency-groups]
+dev = [
+    "ipykernel>=6.29.5,<7",
+    "jupyterlab>=4.6.3",
+]
