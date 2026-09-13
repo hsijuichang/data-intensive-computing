@@ -1,8 +1,11 @@
 # Data-Intensive Computing - Lab 1
 
-This repository contains the Week 1 implementation for Tasks 1, 3, 4, 5, and
-6. The `data/` folder is not included in the submission because the raw and
-generated datasets are too large.
+This repository implements a reusable urban data platform with Apache Spark
+and Delta Lake. It catalogs and standardizes four heterogeneous New York City
+datasets, validates them through a generic ingestion framework, and integrates
+valid taxi trips with pickup/dropoff zones, hourly weather, and borough-hour
+PM2.5 observations. The `data/` folder is not included in the submission
+because the raw and generated datasets are too large.
 
 ## Prerequisites
 
