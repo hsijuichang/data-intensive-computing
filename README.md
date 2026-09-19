@@ -1,56 +1,202 @@
-# Data-Intensive Computing - Lab 1
+# Data-Intensive Computing — Urban Data Platform
 
-This repository implements a reusable urban data platform with Apache Spark
-and Delta Lake. It catalogs and standardizes four heterogeneous New York City
-datasets, validates them through a generic ingestion framework, and integrates
-valid taxi trips with pickup/dropoff zones, hourly weather, and borough-hour
-PM2.5 observations. The `data/` folder is not included in the submission
-because the raw and generated datasets are too large.
+This project implements a reusable analytical platform with Apache Spark and
+Delta Lake. It ingests and validates New York City taxi, weather, air-quality,
+and taxi-zone data; builds an integrated trip table; executes Spark SQL
+analytics; evaluates query optimizations; and publishes reusable analytical
+Delta products.
+
+The `data/` directory is intentionally excluded from the repository because
+the raw and generated datasets are too large.
 
 ## Prerequisites
 
-- Python (see `pyproject.toml` for the minimum version) and [uv](https://docs.astral.sh/uv/)
-- **Java 17** — required by PySpark 4.x (PySpark 4.x will not start on Java 11
-  or earlier; it fails with `UnsupportedClassVersionError`).
+- Python and [uv](https://docs.astral.sh/uv/) as specified in `pyproject.toml`
+- Java 17 for PySpark 4.x
+- A LaTeX distribution with `pgfplots` to rebuild the benchmark report
+
+Install the Python environment from the project root:
+
+```powershell
+uv sync
+java -version
+uv run jupyter lab
+```
+
+`java -version` must report Java 17.
+
+### Windows
+
+The project automatically configures `JAVA_HOME`, `HADOOP_HOME`,
+`winutils.exe`, `hadoop.dll`, and Spark temporary directories through
+`src/data_intensive_computing/spark_env.py`.
+
+Run only one Spark notebook kernel at a time. After a notebook finishes,
+shut down its kernel before starting another one. Multiple local Spark
+contexts can exhaust driver memory or terminate the Py4J JVM connection.
+
+## Input data
+
+Create `data/raw/` and add:
+
+- `yellow_tripdata_2024-*.parquet`
+- `weather.csv`
+- `hourly_88101_2024.csv`
+- `taxi_zone_lookup.csv`
 
 ## Project structure
 
 ```text
 data-intensive-computing/
+├── artifacts/
+│   └── task3_benchmark_results.jsonl
 ├── data/
 │   ├── raw/
-│   │   ├── yellow_tripdata_2024-*.parquet
-│   │   ├── weather.csv
-│   │   ├── hourly_88101_2024.csv
-│   │   └── taxi_zone_lookup.csv
-│   ├── processed/   # Valid standardized Delta data 
-│   ├── failed/      # Rejected records and validation errors
-│   └── metadata/    # Ingestion statistics and schema information
+│   ├── processed/
+│   │   ├── taxi_trips/
+│   │   ├── weather/
+│   │   ├── air_quality/
+│   │   ├── taxi_zones/
+│   │   ├── integrated_taxi_trips/
+│   │   └── analytical_products/
+│   ├── failed/
+│   └── metadata/
 ├── notebooks/
-│   ├── data_catalog.ipynb          # Task 1: study data and create the catalog
-│   ├── ingestion_framework.ipynb   # Tasks 3 and 4: ingestion and common data model
-│   ├── integrated_taxi_trips.ipynb # Task 5: integration pipeline
-│   └── benchmark.ipynb             # Task 6: partition strategy benchmark
+│   ├── data_catalog.ipynb
+│   ├── ingestion_framework.ipynb
+│   ├── integrated_taxi_trips.ipynb
+│   ├── analytical_queries.ipynb
+│   ├── optimization/
+│   ├── data_products/
+│   ├── evaluate.ipynb
+│   └── benchmark.ipynb
 ├── reports/
-│   ├── data_catalog.png            # Exported Task 1 catalog
-│   ├── common_data_model.md        # Task 4 model documentation
-│   └── benchmark_report.pdf        # Task 6 benchmark report
-├── README.md
-├── pyproject.toml
-└── uv.lock
+│   ├── benchmark_report.tex
+│   ├── benchmark_report.pdf
+│   ├── design_report.pdf
+│   └── common_data_model.md
+└── src/data_intensive_computing/
+    ├── benchmark_helpers.py
+    └── spark_env.py
 ```
 
-## How to run
+`notebooks/benchmark.ipynb` is the earlier partition-strategy experiment.
+The current analytical optimization experiments are under
+`notebooks/optimization/`.
 
-1. Create `data/raw` in the project root and place the four downloaded
-   datasets there using the filenames shown above.
-2. Confirm Java 17 is active: `java -version` should print `17.x.x`.
-3. `uv sync` to install dependencies.
-4. Run `notebooks/data_catalog.ipynb` to inspect the raw data and export the
-   catalog image.
-5. Run `notebooks/ingestion_framework.ipynb` to create the `processed`,
-   `failed`, and `metadata` Delta outputs.
-6. Run `notebooks/integrated_taxi_trips.ipynb` to build the enriched
-   `integrated_taxi_trips` Delta table.
-7. Run `notebooks/benchmark.ipynb` to reproduce the Task 6 partition
-   strategy benchmark; the numbers it prints are discussed in `reports/report.pdf`.
+## Complete execution order
+
+### 1. Build the Week 1 Delta tables
+
+Run these notebooks in order:
+
+1. `notebooks/data_catalog.ipynb`
+2. `notebooks/ingestion_framework.ipynb`
+3. `notebooks/integrated_taxi_trips.ipynb`
+
+They create the standardized source Delta tables and
+`data/processed/integrated_taxi_trips`.
+
+### 2. Run the analytical query library
+
+Run `notebooks/analytical_queries.ipynb`.
+
+It implements:
+
+- monthly demand by pickup zone;
+- trip distance by weather condition;
+- air-quality and hourly-demand analysis;
+- weather-related zone-demand variation;
+- peak travel hours by weekday;
+- monthly demand trends.
+
+Each query prints its execution time and stores its SQL text and collected
+result in the notebook session.
+
+### 3. Reproduce the optimization experiments
+
+Run the final experiment notebooks under `notebooks/optimization/` in fresh
+kernels:
+
+- `partition_pruning.ipynb`
+- `broadcast_join.ipynb`
+- `caching.ipynb`
+- `aqe_zone_weather_demand_variation.ipynb`
+- `aqe_monthly_zone_demand.ipynb`
+- `aqe_distance_by_weather.ipynb`
+
+The two reverse-order notebooks diagnose AQE measurement-order effects:
+
+- `aqe_monthly_zone_demand_reverse.ipynb`
+- `aqe_distance_by_weather_reverse.ipynb`
+
+The common warm-up, median timing, plan capture, result comparison, and JSONL
+helpers are in `src/data_intensive_computing/benchmark_helpers.py`.
+Historical runs are appended to `artifacts/task3_benchmark_results.jsonl`;
+the final notebook outputs are the authoritative results.
+
+### 4. Generate analytical data products
+
+Run all notebooks under `notebooks/data_products/`, one at a time:
+
+1. `zone_hourly_demand_profile.ipynb`
+2. `airport_transfer_summary.ipynb`
+3. `weather_sensitive_zone_demand.ipynb`
+4. `origin_destination_flow.ipynb`
+5. `fare_and_tip_patterns.ipynb`
+6. `trip_distance_distribution.ipynb`
+
+Each notebook writes a Delta table under
+`data/processed/analytical_products/`. Every product includes
+`source_table`, `created_at`, `refreshed_at`, and `schema_version`.
+The zone-hour and origin-destination products are partitioned by pickup year
+and month.
+
+### 5. Evaluate the platform
+
+After all data products exist, run `notebooks/evaluate.ipynb`.
+
+The notebook consolidates:
+
+- original analytical execution times;
+- controlled before/after optimization timings;
+- optimization coverage and physical-plan changes;
+- AQE reverse-order diagnostics;
+- result-equivalence checks;
+- analytical-product row counts, file counts, and active Delta storage.
+
+The current measured product overhead is 5.800 MB, or 0.619% of the
+936.188 MB integrated Delta table.
+
+## Benchmark methodology
+
+Controlled optimization experiments use one discarded warm-up followed by
+five timed repetitions and report the median. Queries are fully materialized
+with `collect()`. Baseline and optimized results are compared in both
+directions using Spark `subtract()`.
+
+The validated results are:
+
+- partition pruning: 1.25x;
+- broadcast join: 3.57x;
+- shared-intermediate caching: 5.86x;
+- AQE: no demonstrated improvement for the three tested queries.
+
+The AQE notebooks initially showed 1.05x–1.37x timing differences, but the
+winner reversed when measurement order was reversed. `EXPLAIN FORMATTED`
+also showed no `AQEShuffleRead` and no difference between AQE initial and
+final plans.
+
+## Reports
+
+The benchmark analysis is in `reports/benchmark_report.tex`. Rebuild it from
+the project root with:
+
+```powershell
+pdflatex -output-directory=reports reports/benchmark_report.tex
+pdflatex -output-directory=reports reports/benchmark_report.tex
+```
+
+The report includes timing charts, storage overhead, execution-plan changes,
+performance conclusions, trade-offs, and recommendations for expansion to
+ten cities.
