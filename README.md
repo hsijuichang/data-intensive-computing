@@ -50,35 +50,53 @@ Create `data/raw/` and add:
 data-intensive-computing/
 ├── artifacts/
 │   ├── task3_benchmark_results.jsonl
-│   └── ten_city_scaling_results.json
-├── data/
-│   ├── raw/
-│   ├── processed/
-│   │   ├── taxi_trips/
-│   │   ├── weather/
-│   │   ├── air_quality/
-│   │   ├── taxi_zones/
-│   │   ├── integrated_taxi_trips/
-│   │   └── analytical_products/
-│   ├── failed/
-│   └── metadata/
+│   └── ten_city_scaling_results.json                             
 ├── notebooks/
+│   ├── data_products/
+│   │   ├── product_utils.py
+│   │   ├── README.md
+│   │   ├── airport_transfer_summary.ipynb
+│   │   ├── fare_and_tip_patterns.ipynb
+│   │   ├── origin_destination_flow.ipynb
+│   │   ├── trip_distance_distribution.ipynb
+│   │   ├── weather_sensitive_zone_demand.ipynb
+│   │   └── zone_hourly_demand_profile.ipynb
+│   ├── optimization/
+│   │   ├── partition_pruning.ipynb
+│   │   ├── broadcast_join.ipynb
+│   │   ├── caching.ipynb
+│   │   ├── aqe_zone_weather_demand_variation.ipynb
+│   │   ├── aqe_monthly_zone_demand.ipynb
+│   │   ├── aqe_monthly_zone_demand_reverse.ipynb
+│   │   ├── aqe_distance_by_weather.ipynb
+│   │   └── aqe_distance_by_weather_reverse.ipynb
 │   ├── data_catalog.ipynb
 │   ├── ingestion_framework.ipynb
 │   ├── integrated_taxi_trips.ipynb
 │   ├── analytical_queries.ipynb
-│   ├── optimization/
-│   ├── data_products/
 │   ├── evaluate.ipynb
 │   └── benchmark.ipynb
 ├── reports/
-│   ├── benchmark_report.tex
-│   ├── benchmark_report.pdf
-│   ├── design_report.pdf
-│   └── common_data_model.md
-└── src/data_intensive_computing/
-    ├── benchmark_helpers.py
-    └── spark_env.py
+│   ├── lab1/
+│   │   ├── architecture.png
+│   │   ├── data_catalog.png
+│   │   ├── benchmark_report.pdf
+│   │   ├── design_report.pdf
+│   │   └── common_data_model.md
+│   ├── lab2/
+│   │   ├── Iab2_benchmark.pdf
+│   │   └── lab2_short_report.pdf
+├── src/
+│   └── data_intensive_computing/
+│       ├── __init__.py
+│       └── benchmark_helpers.py
+├── tools/
+│   └── hadoop/bin/
+│       ├── hadoop.dll
+│       └── winutils.exe
+├── .gitignore
+├── pyproject.toml
+└── uv.lock
 ```
 
 `notebooks/benchmark.ipynb` is the earlier partition-strategy experiment.
