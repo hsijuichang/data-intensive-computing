@@ -1,0 +1,15 @@
+{
+  "experiment": "synthetic_ten_city_january_2024",
+  "one_city_source_rows": 2926993,
+  "ten_city_source_rows": 29269930,
+  "one_city_median_seconds": 0.9394,
+  "ten_city_median_seconds": 1.6773,
+  "latency_scaling_ratio": 1.786,
+  "one_city_rows_per_second": 3115811,
+  "ten_city_rows_per_second": 17450623,
+  "broadcast_nested_loop_for_city_expansion": true,
+  "correctness_verified": true,
+  "rows_only_in_expected": 0,
+  "rows_only_in_actual": 0,
+  "limitations": "Ten identical city copies; measures volume scaling only."
+}
