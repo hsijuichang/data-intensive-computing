@@ -219,3 +219,7 @@ __marimo__/
 
 data/*
 .DS_Store
+
+src/data_intensive_computing/spark_env.py
+
+.vscode/
