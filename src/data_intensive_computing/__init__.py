@@ -1,7 +1,14 @@
-from data_intensive_computing.spark_env import configure_windows_spark_env
+"""Urban data platform package."""
 
-__all__ = ["configure_windows_spark_env", "main"]
+from __future__ import annotations
+
+from typing import Sequence
+
+__all__ = ["main"]
 
 
-def main() -> None:
-    print("Hello from data-intensive-computing!")
+def main(argv: Sequence[str] | None = None) -> int:
+    """Run the project command-line interface."""
+    from data_intensive_computing.task1.cli import main as cli_main
+
+    return cli_main(argv)

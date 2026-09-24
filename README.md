@@ -88,8 +88,14 @@ data-intensive-computing/
 │   │   └── lab2_short_report.pdf
 ├── src/
 │   └── data_intensive_computing/
+│       ├── task1/
+│       │   ├── cli.py
+│       │   ├── config.py
+│       │   ├── pipeline.py
+│       │   └── updates.py
 │       ├── __init__.py
-│       └── benchmark_helpers.py
+│       ├── benchmark_helpers.py
+│       └── spark.py
 ├── tools/
 │   └── hadoop/bin/
 │       ├── hadoop.dll
@@ -103,17 +109,70 @@ data-intensive-computing/
 The current analytical optimization experiments are under
 `notebooks/optimization/`.
 
+## Week 3 Task 1: incremental updates
+
+Task 1 is implemented as the reusable Python package
+`src/data_intensive_computing/task1/`; it does not require a notebook. First
+run the Week 1 ingestion once so the baseline Delta tables exist, then generate
+and apply the incremental releases:
+
+```powershell
+uv run data-intensive-computing generate-updates
+uv run data-intensive-computing apply-updates
+```
+
+The equivalent one-step command is:
+
+```powershell
+uv run data-intensive-computing task1
+```
+
+Useful generation options are `--taxi-fraction` (0.05–0.10),
+`--taxi-duplicate-fraction` (0.01–0.02), `--hours`, and `--seed`. Both taxi
+fractions use the original taxi row count as their denominator. For example:
+
+```powershell
+uv run data-intensive-computing task1 --taxi-fraction 0.08 --taxi-duplicate-fraction 0.015 --hours 168
+```
+
+The generated Spark datasets are stored at:
+
+- `data/updates/taxi_trips_update.parquet`
+- `data/updates/weather_update.csv`
+- `data/updates/air_quality_update.csv`
+
+These paths are Spark dataset directories containing Parquet or CSV part
+files. `artifacts/task1_update_manifest.json` documents the generated counts
+and schema changes. Incremental timing and record counts are appended to
+`artifacts/task1_incremental_results.jsonl` for later evaluation.
+
+The pipeline validates each release, quarantines invalid and duplicate rows
+under `data/failed/`, and uses an insert-only Delta `MERGE`. Existing rows are
+never overwritten. Delta schema evolution adds numeric `humidity` to weather
+and integer `aqi` to air quality; previous records retain `null` for those new
+columns. Re-running `apply-updates` is idempotent for the processed tables:
+previously inserted rows are recognized by their Week 1 primary keys and
+ignored. The failed-data audit intentionally records duplicate observations
+from each execution separately by ingestion run ID.
+
+The Python API used by the CLI is also available to the evaluation code:
+
+- `task1.updates.generate_all_updates(...)`
+- `task1.pipeline.run_incremental_updates(...)`
+- `task1.pipeline.apply_incremental_update(...)`
+
 ## Complete execution order
 
 1. Build the processed Delta tables:
    - `notebooks/data_catalog.ipynb`
    - `notebooks/ingestion_framework.ipynb`
    - `notebooks/integrated_taxi_trips.ipynb`
-2. Run the analytical queries:
+2. Generate and apply Week 3 Task 1 updates using the commands above.
+3. Run the analytical queries:
    - `notebooks/analytical_queries.ipynb`
-3. Run every notebook under `notebooks/optimization/`.
-4. Run every product notebook under `notebooks/data_products/`.
-5. Run the final evaluation:
+4. Run every notebook under `notebooks/optimization/`.
+5. Run every product notebook under `notebooks/data_products/`.
+6. Run the final evaluation:
    - `notebooks/evaluate.ipynb`
 
 

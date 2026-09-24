@@ -1,0 +1,42 @@
+{
+  "generated_at": "2026-09-24T18:03:40.847110+00:00",
+  "parameters": {
+    "taxi_fraction": 0.05,
+    "taxi_duplicate_fraction": 0.01,
+    "hours": 168,
+    "seed": 42
+  },
+  "datasets": [
+    {
+      "dataset_name": "taxi_trips",
+      "output_path": "D:\\Master\\data intensive\\data-intensive-computing\\data\\updates\\taxi_trips_update.parquet",
+      "original_records": 9554778,
+      "new_records": 477739,
+      "duplicate_records": 95548,
+      "total_update_records": 573287,
+      "schema_changes": []
+    },
+    {
+      "dataset_name": "weather",
+      "output_path": "D:\\Master\\data intensive\\data-intensive-computing\\data\\updates\\weather_update.csv",
+      "original_records": 8784,
+      "new_records": 168,
+      "duplicate_records": 0,
+      "total_update_records": 168,
+      "schema_changes": [
+        "added humidity: numeric relative humidity percentage (20\u2013100)"
+      ]
+    },
+    {
+      "dataset_name": "air_quality",
+      "output_path": "D:\\Master\\data intensive\\data-intensive-computing\\data\\updates\\air_quality_update.csv",
+      "original_records": 8139551,
+      "new_records": 177240,
+      "duplicate_records": 0,
+      "total_update_records": 177240,
+      "schema_changes": [
+        "added aqi: integer US EPA Air Quality Index (0\u2013500)"
+      ]
+    }
+  ]
+}
