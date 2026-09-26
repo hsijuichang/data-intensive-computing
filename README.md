@@ -49,6 +49,9 @@ Create `data/raw/` and add:
 ```text
 data-intensive-computing/
 ├── artifacts/
+│   ├── task1_update_manifest.json
+│   ├── task1_incremental_results.jsonl
+│   ├── task2_refresh_results.jsonl
 │   ├── task3_benchmark_results.jsonl
 │   └── ten_city_scaling_results.json                             
 ├── notebooks/
@@ -93,6 +96,21 @@ data-intensive-computing/
 │       │   ├── config.py
 │       │   ├── pipeline.py
 │       │   └── updates.py
+│       ├── task2/
+│       │   ├── cli.py
+│       │   ├── config.py
+│       │   ├── integration.py
+│       │   ├── models.py
+│       │   ├── pipeline.py
+│       │   └── products.py
+│       ├── task4/
+│       │   ├── cli.py
+│       │   ├── config.py
+│       │   ├── engine.py
+│       │   ├── models.py
+│       │   ├── quarantine.py
+│       │   ├── rules.py
+│       │   └── schema.py
 │       ├── __init__.py
 │       ├── benchmark_helpers.py
 │       └── spark.py
@@ -155,11 +173,121 @@ previously inserted rows are recognized by their Week 1 primary keys and
 ignored. The failed-data audit intentionally records duplicate observations
 from each execution separately by ingestion run ID.
 
+Task 4 is called automatically after Task 1 transforms each update and before
+the Delta `MERGE`. Consequently only `validated.valid` reaches the processed
+table; duplicates, invalid values, incomplete rows, missing references, and
+unsupported schemas are rejected without interrupting the other datasets.
+Duplicates are a subset of `rejected_records`, so each run satisfies
+`processed_records = inserted_records + rejected_records`.
+
+To apply all generated updates or only one table:
+
+```powershell
+uv run data-intensive-computing apply-updates
+uv run data-intensive-computing apply-updates taxi_trips
+uv run data-intensive-computing apply-updates weather
+uv run data-intensive-computing apply-updates air_quality
+```
+
 The Python API used by the CLI is also available to the evaluation code:
 
 - `task1.updates.generate_all_updates(...)`
 - `task1.pipeline.run_incremental_updates(...)`
 - `task1.pipeline.apply_incremental_update(...)`
+
+## Week 3 Task 2: analytical consistency
+
+After Task 1 has merged the processed Delta updates, incrementally enrich every
+processed taxi trip that is still missing from `integrated_taxi_trips` and
+refresh only the affected year/month slices of all six analytical products:
+
+```powershell
+uv run data-intensive-computing refresh-analytics
+```
+
+The alias `task2` is equivalent. A combined production pipeline can pass the
+taxi result returned by Task 1 to avoid scanning unrelated source rows:
+
+```python
+from data_intensive_computing.task2 import maintain_analytical_consistency
+
+result = maintain_analytical_consistency(
+    spark,
+    project_root,
+    taxi_run_id=taxi_incremental_result.run_id,
+)
+```
+
+The Python implementation lives in `src/data_intensive_computing/task2/`.
+It preserves every Week 2 output column, adds evolved humidity and AQI context
+to new integrated rows, uses an idempotent `trip_id` Delta merge, and fully
+recomputes each affected month before merging the corresponding product rows.
+Structured integration and per-product timing results are returned to callers
+for Task 5 monitoring and appended to
+`artifacts/task2_refresh_results.jsonl`. A second run with no pending taxi rows
+is skipped without rewriting analytical products.
+
+To limit a standalone refresh to one Task 1 taxi run or selected products:
+
+```powershell
+uv run data-intensive-computing refresh-analytics --taxi-run-id RUN_ID
+uv run data-intensive-computing refresh-analytics origin_destination_flow
+uv run data-intensive-computing refresh-analytics origin_destination_flow zone_hourly_demand_profile
+```
+
+Product names are positional, matching the Task 1 `apply-updates` interface.
+Omitting product names refreshes all six analytical product tables. Supplying
+one or more names refreshes only those tables.
+
+## Week 3 Task 4: extensible validation
+
+Task 4 is implemented as a reusable package under
+`src/data_intensive_computing/task4/` and is wired into Task 1 immediately
+before its Delta merge. The same public API can validate any already
+transformed DataFrame:
+
+```python
+from data_intensive_computing.task4 import validate_dataset
+
+validated = validate_dataset(
+    spark,
+    "taxi_trips",
+    transformed_update,
+    target_path=project_root / "data" / "processed" / "taxi_trips",
+    run_id=run_id,
+)
+
+valid_rows = validated.valid
+invalid_rows = validated.invalid
+summary = validated.summary
+```
+
+The framework detects incomplete records, invalid values, missing taxi-zone
+references, duplicates within the batch and against the target Delta table,
+and unsupported schema changes. Rejected rows are appended to
+`data/failed/<dataset>` with validation metadata. Duplicate rows are included
+in `rejected_records` and are also reported separately as
+`duplicate_records`, so the accounting invariant is always
+`input_records = valid_records + rejected_records`.
+
+Allowed additive evolution is configured for weather `humidity` and
+air-quality `aqi`. New rules are registered in `task4/config.py` by composing
+the generic factories in `task4/rules.py`; the validation engine does not need
+to change.
+
+The normal integrated entry point is Task 1, so no staging directory is
+required:
+
+```powershell
+uv run data-intensive-computing apply-updates taxi_trips
+```
+
+The separate Task 4 module CLI remains available only when an external system
+has already materialized a transformed candidate Delta table.
+
+The returned `ValidationSummary` is serializable and includes counts,
+failure-code frequencies, schema changes, elapsed time, status, and quarantine
+path for later Task 5 monitoring.
 
 ## Complete execution order
 
@@ -168,13 +296,11 @@ The Python API used by the CLI is also available to the evaluation code:
    - `notebooks/ingestion_framework.ipynb`
    - `notebooks/integrated_taxi_trips.ipynb`
 2. Generate and apply Week 3 Task 1 updates using the commands above.
-3. Run the analytical queries:
+3. Run the Week 3 Task 2 analytical consistency refresh.
+4. Run the analytical queries:
    - `notebooks/analytical_queries.ipynb`
-4. Run every notebook under `notebooks/optimization/`.
-5. Run every product notebook under `notebooks/data_products/`.
-6. Run the final evaluation:
+5. Run every notebook under `notebooks/optimization/`.
+6. Run every product notebook under `notebooks/data_products/` only when a
+   full Week 2 rebuild is intentionally required.
+7. Run the final evaluation:
    - `notebooks/evaluate.ipynb`
-
-
-
-

@@ -32,8 +32,11 @@ class IncrementalRunResult:
     inserted_records: int
     duplicate_records: int
     rejected_records: int
+    warning_records: int
     schema_version: str
+    schema_changes: tuple[str, ...]
     validation_failures: dict[str, int]
+    quarantine_path: str | None
     status: str
 
 
@@ -74,34 +77,35 @@ def _stable_hash(columns: list[str]) -> "Column":
     )
 
 
-def _add_error(errors: "Column", condition: "Column", code: str) -> "Column":
-    from pyspark.sql import functions as F
-
-    return F.when(
-        condition,
-        F.array_union(errors, F.array(F.lit(code))),
-    ).otherwise(errors)
+def _has_columns(frame: "DataFrame", *names: str) -> bool:
+    return set(names).issubset(frame.columns)
 
 
 def _transform_taxi(frame: "DataFrame") -> "DataFrame":
     from pyspark.sql import functions as F
 
-    frame = (
-        _standardize_columns(frame)
-        .withColumnRenamed("pu_location_id", "pickup_location_id")
-        .withColumnRenamed("do_location_id", "dropoff_location_id")
-        .withColumnRenamed("ratecode_id", "rate_code_id")
-        .withColumnRenamed("tpep_pickup_datetime", "pickup_datetime")
-        .withColumnRenamed("tpep_dropoff_datetime", "dropoff_datetime")
-        .withColumn("vendor_id", F.col("vendor_id").cast("long"))
-        .withColumn("pickup_datetime", F.col("pickup_datetime").cast("timestamp"))
-        .withColumn("dropoff_datetime", F.col("dropoff_datetime").cast("timestamp"))
-        .withColumn("passenger_count", F.col("passenger_count").cast("int"))
-        .withColumn("rate_code_id", F.col("rate_code_id").cast("long"))
-        .withColumn("pickup_location_id", F.col("pickup_location_id").cast("int"))
-        .withColumn("dropoff_location_id", F.col("dropoff_location_id").cast("int"))
-        .withColumn("payment_type", F.col("payment_type").cast("long"))
-    )
+    frame = _standardize_columns(frame)
+    for old, new in (
+        ("pu_location_id", "pickup_location_id"),
+        ("do_location_id", "dropoff_location_id"),
+        ("ratecode_id", "rate_code_id"),
+        ("tpep_pickup_datetime", "pickup_datetime"),
+        ("tpep_dropoff_datetime", "dropoff_datetime"),
+    ):
+        if old in frame.columns:
+            frame = frame.withColumnRenamed(old, new)
+    for name, data_type in (
+        ("vendor_id", "long"),
+        ("pickup_datetime", "timestamp"),
+        ("dropoff_datetime", "timestamp"),
+        ("passenger_count", "int"),
+        ("rate_code_id", "long"),
+        ("pickup_location_id", "int"),
+        ("dropoff_location_id", "int"),
+        ("payment_type", "long"),
+    ):
+        if name in frame.columns:
+            frame = frame.withColumn(name, F.col(name).cast(data_type))
     for name in (
         "trip_distance",
         "fare_amount",
@@ -114,7 +118,8 @@ def _transform_taxi(frame: "DataFrame") -> "DataFrame":
         "congestion_surcharge",
         "airport_fee",
     ):
-        frame = frame.withColumn(name, F.col(name).cast("double"))
+        if name in frame.columns:
+            frame = frame.withColumn(name, F.col(name).cast("double"))
     key = [
         "vendor_id",
         "pickup_datetime",
@@ -124,16 +129,29 @@ def _transform_taxi(frame: "DataFrame") -> "DataFrame":
         "trip_distance",
         "total_amount",
     ]
+    trip_id = (
+        F.when(_all_present(key), _stable_hash(key))
+        if _has_columns(frame, *key)
+        else F.lit(None).cast("string")
+    )
+    duration = (
+        F.expr("timestampdiff(SECOND, pickup_datetime, dropoff_datetime)")
+        / F.lit(60.0)
+        if _has_columns(frame, "pickup_datetime", "dropoff_datetime")
+        else F.lit(None).cast("double")
+    )
+    pickup = (
+        F.col("pickup_datetime")
+        if "pickup_datetime" in frame.columns
+        else F.lit(None).cast("timestamp")
+    )
     return (
-        frame.withColumn("trip_id", F.when(_all_present(key), _stable_hash(key)))
-        .withColumn(
-            "trip_duration_minutes",
-            F.expr("timestampdiff(SECOND, pickup_datetime, dropoff_datetime)") / F.lit(60.0),
-        )
-        .withColumn("pickup_date", F.to_date("pickup_datetime"))
-        .withColumn("pickup_hour", F.date_trunc("hour", "pickup_datetime"))
-        .withColumn("pickup_year", F.year("pickup_datetime").cast("int"))
-        .withColumn("pickup_month", F.month("pickup_datetime").cast("int"))
+        frame.withColumn("trip_id", trip_id)
+        .withColumn("trip_duration_minutes", duration)
+        .withColumn("pickup_date", F.to_date(pickup))
+        .withColumn("pickup_hour", F.date_trunc("hour", pickup))
+        .withColumn("pickup_year", F.year(pickup).cast("int"))
+        .withColumn("pickup_month", F.month(pickup).cast("int"))
     )
 
 
@@ -142,14 +160,18 @@ def _transform_weather(frame: "DataFrame") -> "DataFrame":
 
     frame = _standardize_columns(frame)
     for name in ("year", "month", "day", "hour", "rhum", "wdir", "cldc", "coco"):
-        frame = frame.withColumn(name, F.col(name).cast("int"))
+        if name in frame.columns:
+            frame = frame.withColumn(name, F.col(name).cast("int"))
     for name in ("temp", "prcp", "snwd", "wspd", "wpgt", "pres", "humidity"):
-        frame = frame.withColumn(name, F.col(name).cast("double"))
+        if name in frame.columns:
+            frame = frame.withColumn(name, F.col(name).cast("double"))
+    timestamp = (
+        F.make_timestamp("year", "month", "day", "hour", F.lit(0), F.lit(0))
+        if _has_columns(frame, "year", "month", "day", "hour")
+        else F.lit(None).cast("timestamp")
+    )
     return (
-        frame.withColumn(
-            "observation_timestamp",
-            F.make_timestamp("year", "month", "day", "hour", F.lit(0), F.lit(0)),
-        )
+        frame.withColumn("observation_timestamp", timestamp)
         .withColumn("observation_date", F.to_date("observation_timestamp"))
     )
 
@@ -159,22 +181,46 @@ def _transform_air_quality(frame: "DataFrame") -> "DataFrame":
 
     frame = _standardize_columns(frame)
     for name in ("latitude", "longitude", "sample_measurement", "mdl", "uncertainty"):
-        frame = frame.withColumn(name, F.col(name).cast("double"))
+        if name in frame.columns:
+            frame = frame.withColumn(name, F.col(name).cast("double"))
+    if "aqi" in frame.columns:
+        frame = frame.withColumn("aqi", F.col("aqi").cast("int"))
+    local_timestamp = (
+        F.to_timestamp(
+            F.concat_ws(" ", "date_local", "time_local"), "yyyy-MM-dd HH:mm"
+        )
+        if _has_columns(frame, "date_local", "time_local")
+        else F.lit(None).cast("timestamp")
+    )
+    utc_timestamp = (
+        F.to_timestamp(
+            F.concat_ws(" ", "date_gmt", "time_gmt"), "yyyy-MM-dd HH:mm"
+        )
+        if _has_columns(frame, "date_gmt", "time_gmt")
+        else F.lit(None).cast("timestamp")
+    )
+    last_change = (
+        F.to_date("date_of_last_change", "yyyy-MM-dd")
+        if "date_of_last_change" in frame.columns
+        else F.lit(None).cast("date")
+    )
+    station_columns = (
+        "state_code",
+        "county_code",
+        "site_num",
+        "parameter_code",
+        "poc",
+    )
+    station_id = (
+        F.concat_ws("-", *station_columns)
+        if _has_columns(frame, *station_columns)
+        else F.lit(None).cast("string")
+    )
     frame = (
-        frame.withColumn("aqi", F.col("aqi").cast("int"))
-        .withColumn(
-            "observation_timestamp",
-            F.to_timestamp(F.concat_ws(" ", "date_local", "time_local"), "yyyy-MM-dd HH:mm"),
-        )
-        .withColumn(
-            "observation_timestamp_utc",
-            F.to_timestamp(F.concat_ws(" ", "date_gmt", "time_gmt"), "yyyy-MM-dd HH:mm"),
-        )
-        .withColumn("date_of_last_change", F.to_date("date_of_last_change", "yyyy-MM-dd"))
-        .withColumn(
-            "station_id",
-            F.concat_ws("-", "state_code", "county_code", "site_num", "parameter_code", "poc"),
-        )
+        frame.withColumn("observation_timestamp", local_timestamp)
+        .withColumn("observation_timestamp_utc", utc_timestamp)
+        .withColumn("date_of_last_change", last_change)
+        .withColumn("station_id", station_id)
     )
     key = [
         "state_code",
@@ -185,8 +231,13 @@ def _transform_air_quality(frame: "DataFrame") -> "DataFrame":
         "observation_timestamp",
         "method_code",
     ]
+    observation_id = (
+        F.when(_all_present(key), _stable_hash(key))
+        if _has_columns(frame, *key)
+        else F.lit(None).cast("string")
+    )
     return (
-        frame.withColumn("observation_id", F.when(_all_present(key), _stable_hash(key)))
+        frame.withColumn("observation_id", observation_id)
         .withColumn("observation_date", F.to_date("observation_timestamp"))
         .withColumn("observation_year", F.year("observation_timestamp").cast("int"))
         .withColumn("observation_month", F.month("observation_timestamp").cast("int"))
@@ -201,25 +252,6 @@ TRANSFORMERS = {
 }
 
 
-def _validate_update_schema(frame: "DataFrame", config: DatasetConfig) -> None:
-    expected = set(config.raw_columns) | set(config.evolved_columns)
-    actual = set(frame.columns)
-    missing = sorted(expected - actual)
-    unexpected = sorted(actual - expected)
-    if missing or unexpected:
-        raise ValueError(
-            json.dumps(
-                {
-                    "dataset": config.name,
-                    "missing_columns": missing,
-                    "unexpected_columns": unexpected,
-                    "supported_schema_changes": list(config.evolved_columns),
-                },
-                indent=2,
-            )
-        )
-
-
 def _read_update(
     spark: "SparkSession",
     config: DatasetConfig,
@@ -232,82 +264,7 @@ def _read_update(
         frame = spark.read.parquet(str(path))
     else:
         frame = spark.read.option("header", True).option("inferSchema", False).csv(str(path))
-    _validate_update_schema(frame, config)
     return frame
-
-
-def _validation_rules(dataset_name: str) -> list[tuple[str, "Column"]]:
-    from pyspark.sql import functions as F
-
-    if dataset_name == "taxi_trips":
-        return [
-            ("dropoff_before_pickup", F.col("dropoff_datetime") < F.col("pickup_datetime")),
-            ("negative_trip_distance", F.col("trip_distance") < 0),
-            ("negative_passenger_count", F.col("passenger_count") < 0),
-            ("negative_fare_amount", F.col("fare_amount") < 0),
-            ("negative_total_amount", F.col("total_amount") < 0),
-            ("invalid_trip_distance", F.isnan("trip_distance")),
-            ("invalid_total_amount", F.isnan("total_amount")),
-        ]
-    if dataset_name == "weather":
-        return [
-            ("invalid_relative_humidity", ~F.col("rhum").between(0, 100)),
-            ("invalid_humidity", ~F.col("humidity").between(20, 100)),
-            ("negative_precipitation", F.col("prcp") < 0),
-            ("invalid_wind_direction", ~F.col("wdir").between(0, 360)),
-            ("negative_wind_speed", F.col("wspd") < 0),
-            ("invalid_pressure", ~F.col("pres").between(850, 1100)),
-        ]
-    if dataset_name == "air_quality":
-        return [
-            ("invalid_latitude", ~F.col("latitude").between(-90, 90)),
-            ("invalid_longitude", ~F.col("longitude").between(-180, 180)),
-            ("negative_sample_measurement", F.col("sample_measurement") < 0),
-            ("invalid_sample_measurement", F.isnan("sample_measurement")),
-            ("invalid_aqi", ~F.col("aqi").between(0, 500)),
-        ]
-    raise KeyError(f"No validation rules for {dataset_name}")
-
-
-def _with_validation_errors(
-    frame: "DataFrame",
-    config: DatasetConfig,
-) -> "DataFrame":
-    from pyspark.sql import functions as F
-
-    errors = F.expr("array()").cast("array<string>")
-    for name in config.required_columns:
-        missing = F.col(name).isNull() | (F.trim(F.col(name).cast("string")) == "")
-        errors = _add_error(errors, missing, f"missing_required:{name}")
-    for code, condition in _validation_rules(config.name):
-        errors = _add_error(errors, F.coalesce(condition, F.lit(False)), code)
-    return frame.withColumn("_validation_errors", errors)
-
-
-def _validation_failure_counts(invalid: "DataFrame") -> dict[str, int]:
-    from pyspark.sql import functions as F
-
-    return {
-        row["error"]: row["count"]
-        for row in (
-            invalid.select(F.explode("_validation_errors").alias("error"))
-            .groupBy("error")
-            .count()
-            .collect()
-        )
-    }
-
-
-def _append_quarantine(frame: "DataFrame", path: Path) -> None:
-    if frame.limit(1).count() == 0:
-        return
-    path.parent.mkdir(parents=True, exist_ok=True)
-    (
-        frame.write.format("delta")
-        .mode("append")
-        .option("mergeSchema", "true")
-        .save(str(path))
-    )
 
 
 def apply_incremental_update(
@@ -315,9 +272,11 @@ def apply_incremental_update(
     project_root: Path,
     dataset_name: str,
 ) -> IncrementalRunResult:
-    """Validate one release, quarantine bad/duplicate rows, and insert new rows."""
+    """Transform one release, validate it with Task 4, and merge valid rows."""
     from delta.tables import DeltaTable
-    from pyspark.sql import Window, functions as F
+    from pyspark.sql import functions as F
+
+    from data_intensive_computing.task4 import validate_dataset
 
     config = DATASETS[dataset_name]
     target_path = config.processed_path(project_root)
@@ -338,55 +297,19 @@ def apply_incremental_update(
         .withColumn("_schema_version", F.lit(config.schema_version))
     )
     transformed = TRANSFORMERS[dataset_name](enriched)
-    # Cut the long cast/hash/validation lineage before it is reused by counts,
-    # quarantine writes, joins, and MERGE. This avoids oversized generated
-    # code and keeps later evaluation timings focused on incremental work.
-    validated = _with_validation_errors(transformed, config).localCheckpoint(
-        eager=True
+    # Task 4 owns schema, value, completeness, reference, and duplicate
+    # validation. Only its valid frame is allowed to reach the Delta MERGE.
+    validation = validate_dataset(
+        spark,
+        dataset_name,
+        transformed,
+        target_path=target_path,
+        run_id=run_id,
+        quarantine_path=config.failed_path(project_root),
     )
-
-    invalid = validated.filter(F.size("_validation_errors") > 0)
-    validation_failures = _validation_failure_counts(invalid)
-    rejected_records = invalid.count()
-    valid = validated.filter(F.size("_validation_errors") == 0).drop("_validation_errors")
-
-    duplicate_window = Window.partitionBy(*config.primary_key).orderBy(
-        F.col("_source_file"),
-        F.col("_ingested_at"),
-    )
-    ranked = valid.withColumn("_duplicate_rank", F.row_number().over(duplicate_window))
-    batch_duplicates = (
-        ranked.filter(F.col("_duplicate_rank") > 1)
-        .drop("_duplicate_rank")
-        .withColumn("_validation_errors", F.array(F.lit("duplicate_within_update")))
-    )
-    candidates = ranked.filter(F.col("_duplicate_rank") == 1).drop("_duplicate_rank")
-
-    target_keys = (
-        spark.read.format("delta")
-        .load(str(target_path))
-        .select(*config.primary_key)
-        .dropDuplicates()
-    )
-    existing_duplicates = (
-        candidates.join(target_keys, list(config.primary_key), "left_semi")
-        .withColumn("_validation_errors", F.array(F.lit("duplicate_existing_record")))
-    )
-    inserts = candidates.join(
-        target_keys,
-        list(config.primary_key),
-        "left_anti",
-    ).localCheckpoint(eager=True)
-    inserted_records = inserts.count()
-    batch_duplicate_count = batch_duplicates.count()
-    existing_duplicate_count = existing_duplicates.count()
-    duplicate_records = batch_duplicate_count + existing_duplicate_count
-
-    quarantine = invalid.unionByName(batch_duplicates, allowMissingColumns=True).unionByName(
-        existing_duplicates,
-        allowMissingColumns=True,
-    )
-    _append_quarantine(quarantine, config.failed_path(project_root))
+    summary = validation.summary
+    inserts = validation.valid
+    inserted_records = summary.valid_records
 
     if inserted_records:
         condition = " AND ".join(
@@ -401,14 +324,18 @@ def apply_incremental_update(
             .execute()
         )
 
-    validated.unpersist()
-    inserts.unpersist()
+    validation.unpersist()
     completed_at = datetime.now(timezone.utc)
     elapsed = time.perf_counter() - started_clock
-    if processed_records != inserted_records + duplicate_records + rejected_records:
+    if processed_records != summary.input_records:
+        raise AssertionError(
+            "Task 1/Task 4 input mismatch: "
+            f"{processed_records} != {summary.input_records}"
+        )
+    if processed_records != inserted_records + summary.rejected_records:
         raise AssertionError(
             "Incremental accounting mismatch: "
-            f"{processed_records} != {inserted_records} + {duplicate_records} + {rejected_records}"
+            f"{processed_records} != {inserted_records} + {summary.rejected_records}"
         )
     return IncrementalRunResult(
         run_id=run_id,
@@ -418,11 +345,14 @@ def apply_incremental_update(
         execution_time_seconds=round(elapsed, 4),
         processed_records=processed_records,
         inserted_records=inserted_records,
-        duplicate_records=duplicate_records,
-        rejected_records=rejected_records,
+        duplicate_records=summary.duplicate_records,
+        rejected_records=summary.rejected_records,
+        warning_records=summary.warning_records,
         schema_version=config.schema_version,
-        validation_failures=validation_failures,
-        status="SUCCESS",
+        schema_changes=summary.schema_changes,
+        validation_failures=dict(summary.failure_counts),
+        quarantine_path=summary.quarantine_path,
+        status=summary.status,
     )
 
 
