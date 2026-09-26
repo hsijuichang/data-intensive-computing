@@ -53,7 +53,7 @@ data-intensive-computing/
 │   ├── task1_incremental_results.jsonl
 │   ├── task2_refresh_results.jsonl
 │   ├── task3_benchmark_results.jsonl
-│   └── ten_city_scaling_results.json                             
+│   └── ten_city_scaling_results.json
 ├── notebooks/
 │   ├── data_products/
 │   │   ├── product_utils.py
@@ -92,18 +92,30 @@ data-intensive-computing/
 ├── src/
 │   └── data_intensive_computing/
 │       ├── task1/
+│       │   ├── __init__.py
 │       │   ├── cli.py
 │       │   ├── config.py
 │       │   ├── pipeline.py
 │       │   └── updates.py
 │       ├── task2/
+│       │   ├── __init__.py
 │       │   ├── cli.py
 │       │   ├── config.py
 │       │   ├── integration.py
 │       │   ├── models.py
 │       │   ├── pipeline.py
 │       │   └── products.py
+│       ├── task3/
+│       │   ├── __init__.py
+│       │   ├── cli.py
+│       │   ├── config.py
+│       │   ├── models.py
+│       │   ├── queries.py
+│       │   ├── recorder.py
+│       │   ├── schema.py
+│       │   └── writer.py
 │       ├── task4/
+│       │   ├── __init__.py
 │       │   ├── cli.py
 │       │   ├── config.py
 │       │   ├── engine.py
@@ -209,6 +221,48 @@ Structured integration and per-product timing results are returned to callers
 for Task 5 monitoring and appended to
 `artifacts/task2_refresh_results.jsonl`. A second run with no pending taxi rows
 is skipped without rewriting analytical products.
+
+## Week 3 Task 3: platform monitoring
+
+Task 1 incremental updates and Task 2 analytical refreshes now automatically
+record operational metadata in Delta tables:
+
+- `data/metadata/ingestion_runs`: unified pipeline execution facts, extending
+  the Week 1 table with pipeline type, inserted/warning counts, schema changes,
+  and validation-failure summaries.
+- `data/metadata/validation_failure_events`: normalized validation failures by
+  run, dataset, and rule code.
+- `data/metadata/monitoring_writes`: monitoring-write timings used to measure
+  Task 5 monitoring overhead.
+
+Existing Task 1 JSONL measurements can be imported once without rerunning the
+large incremental update. The operation is idempotent:
+
+```powershell
+uv run data-intensive-computing backfill-monitoring
+```
+
+Run all required Spark SQL monitoring queries with:
+
+```powershell
+uv run data-intensive-computing monitor
+```
+
+The `task3` alias is equivalent. Individual queries can also be selected:
+
+```powershell
+uv run data-intensive-computing monitor validation_failures
+uv run data-intensive-computing monitor longest_processing_time
+uv run data-intensive-computing monitor rejected_by_execution
+uv run data-intensive-computing monitor processing_time_trend
+uv run data-intensive-computing monitor monitoring_overhead
+```
+
+The SQL definitions and reusable Python API are in
+`src/data_intensive_computing/task3/queries.py`. Evaluation experiments can
+compare normal execution with `monitoring_enabled=False` on the Task 1 and
+Task 2 Python pipeline functions. Monitoring-write failures are reported as
+warnings and do not roll back an otherwise successful data update.
 
 
 ## Week 3 Task 4: extensible validation

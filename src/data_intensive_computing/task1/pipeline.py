@@ -6,6 +6,7 @@ import json
 import re
 import time
 import uuid
+import warnings
 from dataclasses import asdict, dataclass
 from datetime import datetime, timezone
 from pathlib import Path
@@ -271,6 +272,8 @@ def apply_incremental_update(
     spark: "SparkSession",
     project_root: Path,
     dataset_name: str,
+    *,
+    monitoring_enabled: bool = True,
 ) -> IncrementalRunResult:
     """Transform one release, validate it with Task 4, and merge valid rows."""
     from delta.tables import DeltaTable
@@ -337,7 +340,7 @@ def apply_incremental_update(
             "Incremental accounting mismatch: "
             f"{processed_records} != {inserted_records} + {summary.rejected_records}"
         )
-    return IncrementalRunResult(
+    result = IncrementalRunResult(
         run_id=run_id,
         dataset_name=dataset_name,
         started_at=started_at.isoformat(),
@@ -354,19 +357,38 @@ def apply_incremental_update(
         quarantine_path=summary.quarantine_path,
         status=summary.status,
     )
+    if monitoring_enabled:
+        from data_intensive_computing.task3 import record_incremental_result
+
+        try:
+            record_incremental_result(spark, project_root, result)
+        except Exception as error:
+            warnings.warn(
+                f"Incremental update succeeded but monitoring failed: {error}",
+                RuntimeWarning,
+                stacklevel=2,
+            )
+    return result
 
 
 def run_incremental_updates(
     spark: "SparkSession",
     project_root: Path,
     datasets: tuple[str, ...] = TASK1_DATASET_ORDER,
+    *,
+    monitoring_enabled: bool = True,
 ) -> list[IncrementalRunResult]:
     """Apply selected releases and append reusable timing results for evaluation."""
     unknown = sorted(set(datasets) - set(DATASETS))
     if unknown:
         raise ValueError(f"Unknown datasets: {unknown}")
     results = [
-        apply_incremental_update(spark, project_root, dataset_name)
+        apply_incremental_update(
+            spark,
+            project_root,
+            dataset_name,
+            monitoring_enabled=monitoring_enabled,
+        )
         for dataset_name in datasets
     ]
     output_path = project_root / "artifacts" / "task1_incremental_results.jsonl"

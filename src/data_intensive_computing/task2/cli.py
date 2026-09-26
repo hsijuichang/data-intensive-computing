@@ -11,6 +11,11 @@ from typing import TYPE_CHECKING, Sequence
 from data_intensive_computing.benchmark_helpers import find_project_root
 from data_intensive_computing.task1.config import TASK1_DATASET_ORDER
 from data_intensive_computing.task2.config import PRODUCT_ORDER
+from data_intensive_computing.task3.cli import (
+    TASK3_COMMANDS,
+    add_task3_subcommands,
+    run_task3_command,
+)
 
 if TYPE_CHECKING:
     from pyspark.sql import SparkSession
@@ -70,7 +75,7 @@ def run_task2_command(
 
 
 def build_parser() -> argparse.ArgumentParser:
-    """Build the common Task 1 and Task 2 command parser."""
+    """Build the common Task 1, Task 2, and Task 3 command parser."""
     parser = argparse.ArgumentParser(prog="data-intensive-computing")
     parser.add_argument(
         "--project-root",
@@ -111,6 +116,7 @@ def build_parser() -> argparse.ArgumentParser:
     task1.add_argument("--seed", type=int, default=42)
 
     add_task2_subcommands(subparsers)
+    add_task3_subcommands(subparsers)
     return parser
 
 
@@ -128,7 +134,7 @@ def _print_results(results: list[object]) -> None:
 
 
 def main(argv: Sequence[str] | None = None) -> int:
-    """Run either the existing Task 1 jobs or the Task 2 refresh."""
+    """Run the Task 1, Task 2, or Task 3 workflow."""
     args = build_parser().parse_args(argv)
     project_root = _project_root(args.project_root)
 
@@ -140,6 +146,8 @@ def main(argv: Sequence[str] | None = None) -> int:
         shuffle_partitions=args.shuffle_partitions,
     )
     try:
+        if args.command in TASK3_COMMANDS:
+            return run_task3_command(args, spark, project_root)
         if args.command in TASK2_COMMANDS:
             return run_task2_command(args, spark, project_root)
 

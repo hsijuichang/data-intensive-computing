@@ -5,6 +5,7 @@ from __future__ import annotations
 import json
 import time
 import uuid
+import warnings
 from dataclasses import asdict
 from datetime import datetime, timezone
 from pathlib import Path
@@ -30,6 +31,7 @@ def maintain_analytical_consistency(
     product_names: tuple[str, ...] = PRODUCT_ORDER,
     run_id: str | None = None,
     progress_callback: Callable[[ProductRefreshResult], None] | None = None,
+    monitoring_enabled: bool = True,
 ) -> AnalyticalConsistencyResult:
     """Integrate pending trips and refresh only their affected product months."""
     run_id = run_id or str(uuid.uuid4())
@@ -65,5 +67,16 @@ def maintain_analytical_consistency(
     artifact.parent.mkdir(parents=True, exist_ok=True)
     with artifact.open("a", encoding="utf-8") as handle:
         handle.write(json.dumps(asdict(result), sort_keys=True) + "\n")
+    if monitoring_enabled:
+        from data_intensive_computing.task3 import record_analytical_result
+
+        try:
+            record_analytical_result(spark, project_root, result)
+        except Exception as error:
+            warnings.warn(
+                f"Analytical refresh succeeded but monitoring failed: {error}",
+                RuntimeWarning,
+                stacklevel=2,
+            )
     return result
 
