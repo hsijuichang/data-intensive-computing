@@ -214,18 +214,6 @@ refresh only the affected year/month slices of all six analytical products:
 uv run data-intensive-computing refresh-analytics
 ```
 
-```powershell
-uv run data-intensive-computing refresh-analytics airport_transfer_summary
-uv run data-intensive-computing refresh-analytics fare_and_tip_patterns
-uv run data-intensive-computing refresh-analytics origin_destination_flow
-uv run data-intensive-computing refresh-analytics trip_distance_distribution
-uv run data-intensive-computing refresh-analytics weather_sensitive_zone_demand
-uv run data-intensive-computing refresh-analytics zone_hourly_demand_profile
-```
-
-The alias `task2` is equivalent. A combined production pipeline can pass the
-taxi result returned by Task 1 to avoid scanning unrelated source rows:
-
 The Python implementation lives in `src/data_intensive_computing/task2/`.
 It preserves every Week 2 output column, adds evolved humidity and AQI context
 to new integrated rows, uses an idempotent `trip_id` Delta merge, and fully
@@ -234,6 +222,18 @@ Structured integration and per-product timing results are returned to callers
 for Task 5 monitoring and appended to
 `artifacts/task2_refresh_results.jsonl`. A second run with no pending taxi rows
 is skipped without rewriting analytical products.
+
+To limit a standalone refresh to one Task 1 taxi run or selected products:
+
+```powershell
+uv run data-intensive-computing refresh-analytics --taxi-run-id RUN_ID
+uv run data-intensive-computing refresh-analytics origin_destination_flow
+uv run data-intensive-computing refresh-analytics origin_destination_flow zone_hourly_demand_profile
+```
+
+Product names are positional, matching the Task 1 `apply-updates` interface.
+Omitting product names refreshes all six analytical product tables. Supplying
+one or more names refreshes only those tables.
 
 ## Week 3 Task 3: platform monitoring
 
@@ -280,9 +280,13 @@ warnings and do not roll back an otherwise successful data update.
 
 ## Week 3 Task 4: extensible validation
 
-Task 4 is implemented independently under
-`src/data_intensive_computing/task4/`; it is not yet wired into the Task 1
-ingestion pipeline. The public API validates an already transformed DataFrame:
+Task 4 is implemented as a reusable package under
+`src/data_intensive_computing/task4/`. It is wired into Task 1 immediately
+after dataset-specific transformation and before the Delta `MERGE`. 
+
+The caller can pass `validated.valid` to a downstream merge or analytical
+stage. `validated.invalid` contains the isolated rows and their validation
+codes.
 
 The framework detects incomplete records, invalid values, missing taxi-zone
 references, duplicates within the batch and against the target Delta table,
@@ -297,17 +301,25 @@ air-quality `aqi`. New rules are registered in `task4/config.py` by composing
 the generic factories in `task4/rules.py`; the validation engine does not need
 to change.
 
-For standalone checks of transformed Delta data, use the Task 4 module CLI:
-
-```powershell
-uv run data-intensive-computing apply-updates
-```
+For normal incremental processing, Task 1 automatically calls Task 4 and then
+merges only valid rows into the target table:
 
 ```powershell
 uv run data-intensive-computing apply-updates taxi_trips
-uv run data-intensive-computing apply-updates weather
-uv run data-intensive-computing apply-updates air_quality
 ```
+
+To validate a transformed candidate Delta table without merging it into the
+processed target, use the standalone Task 4 CLI:
+
+```powershell
+uv run python -m data_intensive_computing.task4.cli taxi_trips PATH_TO_CANDIDATE_DELTA data/processed/taxi_trips
+```
+
+The candidate path must contain an already transformed Delta table with the
+processed schema. The standalone command never modifies the processed target.
+By default, it appends rejected rows to `data/failed/taxi_trips`; add
+`--no-quarantine` when a completely read-only validation check is required.
+
 ## Week 3 Task 5: platform evaluation
 
 Task 5 is implemented under `src/data_intensive_computing/task5/`. It measures
