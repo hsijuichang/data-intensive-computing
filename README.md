@@ -53,6 +53,9 @@ data-intensive-computing/
 │   ├── task1_incremental_results.jsonl
 │   ├── task2_refresh_results.jsonl
 │   ├── task3_benchmark_results.jsonl
+│   ├── task5_evaluation_results.jsonl
+│   ├── task5_storage.json
+│   ├── task5_summary.json
 │   └── ten_city_scaling_results.json
 ├── notebooks/
 │   ├── data_products/
@@ -86,9 +89,9 @@ data-intensive-computing/
 │   │   ├── benchmark_report.pdf
 │   │   ├── design_report.pdf
 │   │   └── common_data_model.md
-│   ├── lab2/
-│   │   ├── Iab2_benchmark.pdf
-│   │   └── lab2_short_report.pdf
+│   └── lab2/
+│       ├── Iab2_benchmark.pdf
+│       └── lab2_short_report.pdf
 ├── src/
 │   └── data_intensive_computing/
 │       ├── task1/
@@ -123,6 +126,13 @@ data-intensive-computing/
 │       │   ├── quarantine.py
 │       │   ├── rules.py
 │       │   └── schema.py
+│       ├── task5/
+│       │   ├── __init__.py
+│       │   ├── cli.py
+│       │   ├── config.py
+│       │   ├── experiments.py
+│       │   ├── snapshot.py
+│       │   └── summary.py
 │       ├── __init__.py
 │       ├── benchmark_helpers.py
 │       └── spark.py
@@ -295,6 +305,54 @@ uv run data-intensive-computing apply-updates taxi_trips
 uv run data-intensive-computing apply-updates weather
 uv run data-intensive-computing apply-updates air_quality
 ```
+## Week 3 Task 5: platform evaluation
+
+Task 5 is implemented under `src/data_intensive_computing/task5/`. It measures
+incremental update time, analytical refresh time (incremental versus full
+recompute), storage overhead, validation overhead, and monitoring overhead.
+Run the steps from the project root in this order:
+
+```powershell
+uv run python -m data_intensive_computing.task5.cli prepare
+uv run python -m data_intensive_computing.task5.cli phase-a --reps 5
+uv run python -m data_intensive_computing.task5.cli phase-b --reps 5
+uv run python -m data_intensive_computing.task5.cli summary
+```
+
+- `prepare` builds the six analytical products if they are missing, generates
+  the update files if they are missing, checks that every generated taxi trip
+  starts after the original data, and records the starting Delta version of
+  every evaluated table (snapshot `S0`).
+- `phase-a` measures Task 1 in three configurations: production (validation
+  and monitoring on), monitoring off, and validation off.
+  `apply_incremental_update()` accepts `validation_enabled=False` for this
+  purpose only; the default keeps validation on.
+- `phase-b` applies Task 1 once, then measures the Task 2 incremental refresh
+  with and without monitoring, and a full recompute.
+- `summary` computes medians and overheads from the saved results without
+  starting Spark.
+
+Every measured run is followed by a Delta `RESTORE` to the snapshot, so each
+repetition processes the same input against the same table state. Each phase
+starts with one discarded warm-up run and rotates the configuration order.
+Phase B restores every table to `S0` when it finishes.
+
+Results are written to:
+
+- `artifacts/task5_evaluation_results.jsonl`: one line per measurement
+- `artifacts/task5_storage.json`: table sizes before and after one run
+- `artifacts/task5_summary.json`: medians and overheads used in the report
+
+If a phase is interrupted, restore all tables before running it again:
+
+```powershell
+uv run python -m data_intensive_computing.task5.cli restore
+```
+
+`artifacts/task5_snapshot.json` stores Delta versions of the local tables and
+is not committed. `prepare` sets the retention period of the evaluated tables
+to 365 days so that `RESTORE` is not blocked. The restored versions leave
+unreferenced files on disk; remove them with `VACUUM` after the evaluation.
 
 ## Complete execution order
 
@@ -309,5 +367,5 @@ uv run data-intensive-computing apply-updates air_quality
 5. Run every notebook under `notebooks/optimization/`.
 6. Run every product notebook under `notebooks/data_products/` only when a
    full Week 2 rebuild is intentionally required.
-7. Run the final evaluation:
-   - `notebooks/evaluate.ipynb`
+7. Run the Week 3 Task 5 evaluation with the commands above.
+   `notebooks/evaluate.ipynb` contains the Week 2 optimization evaluation.
