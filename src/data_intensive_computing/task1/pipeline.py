@@ -267,6 +267,17 @@ def _read_update(
         frame = spark.read.option("header", True).option("inferSchema", False).csv(str(path))
     return frame
 
+def _last_merge_inserted_rows(spark: "SparkSession", target_path: Path) -> int:
+    """Return how many rows the most recent Delta MERGE inserted."""
+    from delta.tables import DeltaTable
+
+    row = (
+        DeltaTable.forPath(spark, str(target_path))
+        .history(1)
+        .select("operationMetrics")
+        .first()
+    )
+    return int(row["operationMetrics"].get("numTargetRowsInserted", 0))
 
 def apply_incremental_update(
     spark: "SparkSession",
@@ -274,6 +285,7 @@ def apply_incremental_update(
     dataset_name: str,
     *,
     monitoring_enabled: bool = True,
+    validation_enabled: bool = True,
 ) -> IncrementalRunResult:
     """Transform one release, validate it with Task 4, and merge valid rows."""
     from delta.tables import DeltaTable
@@ -300,21 +312,28 @@ def apply_incremental_update(
         .withColumn("_schema_version", F.lit(config.schema_version))
     )
     transformed = TRANSFORMERS[dataset_name](enriched)
-    # Task 4 owns schema, value, completeness, reference, and duplicate
-    # validation. Only its valid frame is allowed to reach the Delta MERGE.
-    validation = validate_dataset(
-        spark,
-        dataset_name,
-        transformed,
-        target_path=target_path,
-        run_id=run_id,
-        quarantine_path=config.failed_path(project_root),
-    )
-    summary = validation.summary
-    inserts = validation.valid
-    inserted_records = summary.valid_records
 
-    if inserted_records:
+    validation = None
+    if validation_enabled:
+        # Task 4 owns schema, value, completeness, reference, and duplicate
+        # validation. Only its valid frame is allowed to reach the Delta MERGE.
+        validation = validate_dataset(
+            spark,
+            dataset_name,
+            transformed,
+            target_path=target_path,
+            run_id=run_id,
+            quarantine_path=config.failed_path(project_root),
+        )
+        inserts = validation.valid
+        should_merge = validation.summary.valid_records > 0
+    else:
+        # Evaluation-only path (Task 5): skip Task 4 so validation overhead
+        # can be measured. The insert-only MERGE still ignores existing keys.
+        inserts = transformed
+        should_merge = processed_records > 0
+
+    if should_merge:
         condition = " AND ".join(
             f"target.`{name}` = updates.`{name}`" for name in config.primary_key
         )
@@ -327,19 +346,42 @@ def apply_incremental_update(
             .execute()
         )
 
-    validation.unpersist()
+    if validation is not None:
+        validation.unpersist()
     completed_at = datetime.now(timezone.utc)
     elapsed = time.perf_counter() - started_clock
-    if processed_records != summary.input_records:
-        raise AssertionError(
-            "Task 1/Task 4 input mismatch: "
-            f"{processed_records} != {summary.input_records}"
+
+    if validation is not None:
+        summary = validation.summary
+        inserted_records = summary.valid_records
+        if processed_records != summary.input_records:
+            raise AssertionError(
+                "Task 1/Task 4 input mismatch: "
+                f"{processed_records} != {summary.input_records}"
+            )
+        if processed_records != inserted_records + summary.rejected_records:
+            raise AssertionError(
+                "Incremental accounting mismatch: "
+                f"{processed_records} != {inserted_records} + {summary.rejected_records}"
+            )
+        duplicate_records = summary.duplicate_records
+        rejected_records = summary.rejected_records
+        warning_records = summary.warning_records
+        schema_changes = summary.schema_changes
+        validation_failures = dict(summary.failure_counts)
+        quarantine_path = summary.quarantine_path
+        status = summary.status
+    else:
+        # Read the MERGE's own insert count from the Delta log (after timing).
+        inserted_records = (
+            _last_merge_inserted_rows(spark, target_path) if should_merge else 0
         )
-    if processed_records != inserted_records + summary.rejected_records:
-        raise AssertionError(
-            "Incremental accounting mismatch: "
-            f"{processed_records} != {inserted_records} + {summary.rejected_records}"
-        )
+        duplicate_records = rejected_records = warning_records = 0
+        schema_changes = ()
+        validation_failures = {}
+        quarantine_path = None
+        status = "SUCCESS_WITHOUT_VALIDATION"
+
     result = IncrementalRunResult(
         run_id=run_id,
         dataset_name=dataset_name,
@@ -348,14 +390,14 @@ def apply_incremental_update(
         execution_time_seconds=round(elapsed, 4),
         processed_records=processed_records,
         inserted_records=inserted_records,
-        duplicate_records=summary.duplicate_records,
-        rejected_records=summary.rejected_records,
-        warning_records=summary.warning_records,
+        duplicate_records=duplicate_records,
+        rejected_records=rejected_records,
+        warning_records=warning_records,
         schema_version=config.schema_version,
-        schema_changes=summary.schema_changes,
-        validation_failures=dict(summary.failure_counts),
-        quarantine_path=summary.quarantine_path,
-        status=summary.status,
+        schema_changes=schema_changes,
+        validation_failures=validation_failures,
+        quarantine_path=quarantine_path,
+        status=status,
     )
     if monitoring_enabled:
         from data_intensive_computing.task3 import record_incremental_result

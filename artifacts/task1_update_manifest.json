@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-09-24T18:03:40.847110+00:00",
+  "generated_at": "2026-09-27T09:38:40.569277+00:00",
   "parameters": {
     "taxi_fraction": 0.05,
     "taxi_duplicate_fraction": 0.01,
@@ -9,7 +9,7 @@
   "datasets": [
     {
       "dataset_name": "taxi_trips",
-      "output_path": "D:\\Master\\data intensive\\data-intensive-computing\\data\\updates\\taxi_trips_update.parquet",
+      "output_path": "/Users/rexchang/Documents/KTH/Courses/26-Fall-P1/Data-Intensive-Computing/Homework/data-intensive-computing/data/updates/taxi_trips_update.parquet",
       "original_records": 9554778,
       "new_records": 477739,
       "duplicate_records": 95548,
@@ -18,7 +18,7 @@
     },
     {
       "dataset_name": "weather",
-      "output_path": "D:\\Master\\data intensive\\data-intensive-computing\\data\\updates\\weather_update.csv",
+      "output_path": "/Users/rexchang/Documents/KTH/Courses/26-Fall-P1/Data-Intensive-Computing/Homework/data-intensive-computing/data/updates/weather_update.csv",
       "original_records": 8784,
       "new_records": 168,
       "duplicate_records": 0,
@@ -29,7 +29,7 @@
     },
     {
       "dataset_name": "air_quality",
-      "output_path": "D:\\Master\\data intensive\\data-intensive-computing\\data\\updates\\air_quality_update.csv",
+      "output_path": "/Users/rexchang/Documents/KTH/Courses/26-Fall-P1/Data-Intensive-Computing/Homework/data-intensive-computing/data/updates/air_quality_update.csv",
       "original_records": 8139551,
       "new_records": 177240,
       "duplicate_records": 0,
