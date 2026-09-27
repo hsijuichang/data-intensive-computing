@@ -1,0 +1,656 @@
+{
+  "phase_a_task1": {
+    "measured_at": "2026-09-27T09:41:31.083864+00:00",
+    "before": {
+      "taxi_trips": {
+        "exists": true,
+        "disk_bytes": 1748464605,
+        "delta_log_bytes": 4607076,
+        "parquet_bytes_on_disk": 1730328241,
+        "parquet_files_on_disk": 284,
+        "current_version_bytes": 914393775,
+        "current_version_files": 212,
+        "delta_version": 40
+      },
+      "weather": {
+        "exists": true,
+        "disk_bytes": 3725656,
+        "delta_log_bytes": 2362227,
+        "parquet_bytes_on_disk": 1345893,
+        "parquet_files_on_disk": 90,
+        "current_version_bytes": 879219,
+        "current_version_files": 64,
+        "delta_version": 41
+      },
+      "air_quality": {
+        "exists": true,
+        "disk_bytes": 923924164,
+        "delta_log_bytes": 9935255,
+        "parquet_bytes_on_disk": 906889873,
+        "parquet_files_on_disk": 786,
+        "current_version_bytes": 656169764,
+        "current_version_files": 768,
+        "delta_version": 40
+      },
+      "integrated_taxi_trips": {
+        "exists": true,
+        "disk_bytes": 6754276168,
+        "delta_log_bytes": 4567699,
+        "parquet_bytes_on_disk": 6697374061,
+        "parquet_files_on_disk": 300,
+        "current_version_bytes": 977653813,
+        "current_version_files": 26,
+        "delta_version": 35
+      },
+      "analytical_products/airport_transfer_summary": {
+        "exists": true,
+        "disk_bytes": 6036001,
+        "delta_log_bytes": 1593131,
+        "parquet_bytes_on_disk": 4407882,
+        "parquet_files_on_disk": 55,
+        "current_version_bytes": 68726,
+        "current_version_files": 1,
+        "delta_version": 68
+      },
+      "analytical_products/fare_and_tip_patterns": {
+        "exists": true,
+        "disk_bytes": 2159328,
+        "delta_log_bytes": 1581556,
+        "parquet_bytes_on_disk": 572788,
+        "parquet_files_on_disk": 50,
+        "current_version_bytes": 10047,
+        "current_version_files": 1,
+        "delta_version": 68
+      },
+      "analytical_products/origin_destination_flow": {
+        "exists": true,
+        "disk_bytes": 96611807,
+        "delta_log_bytes": 3781698,
+        "parquet_bytes_on_disk": 92106629,
+        "parquet_files_on_disk": 404,
+        "current_version_bytes": 1925129,
+        "current_version_files": 16,
+        "delta_version": 68
+      },
+      "analytical_products/trip_distance_distribution": {
+        "exists": true,
+        "disk_bytes": 1850414,
+        "delta_log_bytes": 1377473,
+        "parquet_bytes_on_disk": 468801,
+        "parquet_files_on_disk": 50,
+        "current_version_bytes": 8105,
+        "current_version_files": 1,
+        "delta_version": 68
+      },
+      "analytical_products/weather_sensitive_zone_demand": {
+        "exists": true,
+        "disk_bytes": 5485752,
+        "delta_log_bytes": 1511089,
+        "parquet_bytes_on_disk": 3943367,
+        "parquet_files_on_disk": 50,
+        "current_version_bytes": 68331,
+        "current_version_files": 1,
+        "delta_version": 68
+      },
+      "analytical_products/zone_hourly_demand_profile": {
+        "exists": true,
+        "disk_bytes": 206117493,
+        "delta_log_bytes": 5873846,
+        "parquet_bytes_on_disk": 198683015,
+        "parquet_files_on_disk": 830,
+        "current_version_bytes": 4237313,
+        "current_version_files": 32,
+        "delta_version": 68
+      },
+      "failed/taxi_trips": {
+        "exists": true,
+        "disk_bytes": 152490823,
+        "delta_log_bytes": 1683109,
+        "parquet_bytes_on_disk": 149628014,
+        "parquet_files_on_disk": 480,
+        "current_version_bytes": 149628014,
+        "current_version_files": 480,
+        "delta_version": 13
+      },
+      "failed/weather": {
+        "exists": true,
+        "disk_bytes": 46392,
+        "delta_log_bytes": 21150,
+        "parquet_bytes_on_disk": 25002,
+        "parquet_files_on_disk": 4,
+        "current_version_bytes": 9426,
+        "current_version_files": 1,
+        "delta_version": 1
+      },
+      "failed/air_quality": {
+        "exists": true,
+        "disk_bytes": 20599186,
+        "delta_log_bytes": 198926,
+        "parquet_bytes_on_disk": 20241484,
+        "parquet_files_on_disk": 64,
+        "current_version_bytes": 20241484,
+        "current_version_files": 64,
+        "delta_version": 0
+      },
+      "metadata/ingestion_runs": {
+        "exists": true,
+        "disk_bytes": 4689490,
+        "delta_log_bytes": 3729717,
+        "parquet_bytes_on_disk": 944721,
+        "parquet_files_on_disk": 144,
+        "current_version_bytes": 751995,
+        "current_version_files": 72,
+        "delta_version": 71
+      },
+      "metadata/validation_failure_events": {
+        "exists": true,
+        "disk_bytes": 92991,
+        "delta_log_bytes": 61185,
+        "parquet_bytes_on_disk": 31422,
+        "parquet_files_on_disk": 16,
+        "current_version_bytes": 24350,
+        "current_version_files": 8,
+        "delta_version": 7
+      },
+      "metadata/monitoring_writes": {
+        "exists": true,
+        "disk_bytes": 1852045,
+        "delta_log_bytes": 1590923,
+        "parquet_bytes_on_disk": 257954,
+        "parquet_files_on_disk": 132,
+        "current_version_bytes": 190832,
+        "current_version_files": 66,
+        "delta_version": 65
+      }
+    },
+    "after": {
+      "taxi_trips": {
+        "exists": true,
+        "disk_bytes": 1794157001,
+        "delta_log_bytes": 4620492,
+        "parquet_bytes_on_disk": 1775653093,
+        "parquet_files_on_disk": 287,
+        "current_version_bytes": 959718627,
+        "current_version_files": 215,
+        "delta_version": 41
+      },
+      "weather": {
+        "exists": true,
+        "disk_bytes": 3748982,
+        "delta_log_bytes": 2372759,
+        "parquet_bytes_on_disk": 1358579,
+        "parquet_files_on_disk": 91,
+        "current_version_bytes": 891905,
+        "current_version_files": 65,
+        "delta_version": 42
+      },
+      "air_quality": {
+        "exists": true,
+        "disk_bytes": 937973677,
+        "delta_log_bytes": 9947045,
+        "parquet_bytes_on_disk": 920818768,
+        "parquet_files_on_disk": 787,
+        "current_version_bytes": 670098659,
+        "current_version_files": 769,
+        "delta_version": 41
+      },
+      "integrated_taxi_trips": {
+        "exists": true,
+        "disk_bytes": 6754276168,
+        "delta_log_bytes": 4567699,
+        "parquet_bytes_on_disk": 6697374061,
+        "parquet_files_on_disk": 300,
+        "current_version_bytes": 977653813,
+        "current_version_files": 26,
+        "delta_version": 35
+      },
+      "analytical_products/airport_transfer_summary": {
+        "exists": true,
+        "disk_bytes": 6036001,
+        "delta_log_bytes": 1593131,
+        "parquet_bytes_on_disk": 4407882,
+        "parquet_files_on_disk": 55,
+        "current_version_bytes": 68726,
+        "current_version_files": 1,
+        "delta_version": 68
+      },
+      "analytical_products/fare_and_tip_patterns": {
+        "exists": true,
+        "disk_bytes": 2159328,
+        "delta_log_bytes": 1581556,
+        "parquet_bytes_on_disk": 572788,
+        "parquet_files_on_disk": 50,
+        "current_version_bytes": 10047,
+        "current_version_files": 1,
+        "delta_version": 68
+      },
+      "analytical_products/origin_destination_flow": {
+        "exists": true,
+        "disk_bytes": 96611807,
+        "delta_log_bytes": 3781698,
+        "parquet_bytes_on_disk": 92106629,
+        "parquet_files_on_disk": 404,
+        "current_version_bytes": 1925129,
+        "current_version_files": 16,
+        "delta_version": 68
+      },
+      "analytical_products/trip_distance_distribution": {
+        "exists": true,
+        "disk_bytes": 1850414,
+        "delta_log_bytes": 1377473,
+        "parquet_bytes_on_disk": 468801,
+        "parquet_files_on_disk": 50,
+        "current_version_bytes": 8105,
+        "current_version_files": 1,
+        "delta_version": 68
+      },
+      "analytical_products/weather_sensitive_zone_demand": {
+        "exists": true,
+        "disk_bytes": 5485752,
+        "delta_log_bytes": 1511089,
+        "parquet_bytes_on_disk": 3943367,
+        "parquet_files_on_disk": 50,
+        "current_version_bytes": 68331,
+        "current_version_files": 1,
+        "delta_version": 68
+      },
+      "analytical_products/zone_hourly_demand_profile": {
+        "exists": true,
+        "disk_bytes": 206117493,
+        "delta_log_bytes": 5873846,
+        "parquet_bytes_on_disk": 198683015,
+        "parquet_files_on_disk": 830,
+        "current_version_bytes": 4237313,
+        "current_version_files": 32,
+        "delta_version": 68
+      },
+      "failed/taxi_trips": {
+        "exists": true,
+        "disk_bytes": 163021173,
+        "delta_log_bytes": 1779655,
+        "parquet_bytes_on_disk": 159980634,
+        "parquet_files_on_disk": 512,
+        "current_version_bytes": 159980634,
+        "current_version_files": 512,
+        "delta_version": 14
+      },
+      "failed/weather": {
+        "exists": true,
+        "disk_bytes": 46392,
+        "delta_log_bytes": 21150,
+        "parquet_bytes_on_disk": 25002,
+        "parquet_files_on_disk": 4,
+        "current_version_bytes": 9426,
+        "current_version_files": 1,
+        "delta_version": 1
+      },
+      "failed/air_quality": {
+        "exists": true,
+        "disk_bytes": 20599186,
+        "delta_log_bytes": 198926,
+        "parquet_bytes_on_disk": 20241484,
+        "parquet_files_on_disk": 64,
+        "current_version_bytes": 20241484,
+        "current_version_files": 64,
+        "delta_version": 0
+      },
+      "metadata/ingestion_runs": {
+        "exists": true,
+        "disk_bytes": 4750810,
+        "delta_log_bytes": 3752547,
+        "parquet_bytes_on_disk": 982851,
+        "parquet_files_on_disk": 150,
+        "current_version_bytes": 781911,
+        "current_version_files": 75,
+        "delta_version": 74
+      },
+      "metadata/validation_failure_events": {
+        "exists": true,
+        "disk_bytes": 110110,
+        "delta_log_bytes": 74329,
+        "parquet_bytes_on_disk": 35349,
+        "parquet_files_on_disk": 18,
+        "current_version_bytes": 27393,
+        "current_version_files": 9,
+        "delta_version": 8
+      },
+      "metadata/monitoring_writes": {
+        "exists": true,
+        "disk_bytes": 1875171,
+        "delta_log_bytes": 1602476,
+        "parquet_bytes_on_disk": 269383,
+        "parquet_files_on_disk": 138,
+        "current_version_bytes": 199210,
+        "current_version_files": 69,
+        "delta_version": 68
+      }
+    }
+  },
+  "phase_b_task2": {
+    "measured_at": "2026-09-27T09:48:42.534982+00:00",
+    "before": {
+      "taxi_trips": {
+        "exists": true,
+        "disk_bytes": 2528495267,
+        "delta_log_bytes": 8095036,
+        "parquet_bytes_on_disk": 2500850767,
+        "parquet_files_on_disk": 335,
+        "current_version_bytes": 959718630,
+        "current_version_files": 215,
+        "delta_version": 74
+      },
+      "weather": {
+        "exists": true,
+        "disk_bytes": 5940875,
+        "delta_log_bytes": 4359952,
+        "parquet_bytes_on_disk": 1561551,
+        "parquet_files_on_disk": 107,
+        "current_version_bytes": 891905,
+        "current_version_files": 65,
+        "delta_version": 75
+      },
+      "air_quality": {
+        "exists": true,
+        "disk_bytes": 1169201537,
+        "delta_log_bytes": 16571338,
+        "parquet_bytes_on_disk": 1143681087,
+        "parquet_files_on_disk": 803,
+        "current_version_bytes": 670098659,
+        "current_version_files": 769,
+        "delta_version": 74
+      },
+      "integrated_taxi_trips": {
+        "exists": true,
+        "disk_bytes": 6754276168,
+        "delta_log_bytes": 4567699,
+        "parquet_bytes_on_disk": 6697374061,
+        "parquet_files_on_disk": 300,
+        "current_version_bytes": 977653813,
+        "current_version_files": 26,
+        "delta_version": 35
+      },
+      "analytical_products/airport_transfer_summary": {
+        "exists": true,
+        "disk_bytes": 6036001,
+        "delta_log_bytes": 1593131,
+        "parquet_bytes_on_disk": 4407882,
+        "parquet_files_on_disk": 55,
+        "current_version_bytes": 68726,
+        "current_version_files": 1,
+        "delta_version": 68
+      },
+      "analytical_products/fare_and_tip_patterns": {
+        "exists": true,
+        "disk_bytes": 2159328,
+        "delta_log_bytes": 1581556,
+        "parquet_bytes_on_disk": 572788,
+        "parquet_files_on_disk": 50,
+        "current_version_bytes": 10047,
+        "current_version_files": 1,
+        "delta_version": 68
+      },
+      "analytical_products/origin_destination_flow": {
+        "exists": true,
+        "disk_bytes": 96611807,
+        "delta_log_bytes": 3781698,
+        "parquet_bytes_on_disk": 92106629,
+        "parquet_files_on_disk": 404,
+        "current_version_bytes": 1925129,
+        "current_version_files": 16,
+        "delta_version": 68
+      },
+      "analytical_products/trip_distance_distribution": {
+        "exists": true,
+        "disk_bytes": 1850414,
+        "delta_log_bytes": 1377473,
+        "parquet_bytes_on_disk": 468801,
+        "parquet_files_on_disk": 50,
+        "current_version_bytes": 8105,
+        "current_version_files": 1,
+        "delta_version": 68
+      },
+      "analytical_products/weather_sensitive_zone_demand": {
+        "exists": true,
+        "disk_bytes": 5485752,
+        "delta_log_bytes": 1511089,
+        "parquet_bytes_on_disk": 3943367,
+        "parquet_files_on_disk": 50,
+        "current_version_bytes": 68331,
+        "current_version_files": 1,
+        "delta_version": 68
+      },
+      "analytical_products/zone_hourly_demand_profile": {
+        "exists": true,
+        "disk_bytes": 206117493,
+        "delta_log_bytes": 5873846,
+        "parquet_bytes_on_disk": 198683015,
+        "parquet_files_on_disk": 830,
+        "current_version_bytes": 4237313,
+        "current_version_files": 32,
+        "delta_version": 68
+      },
+      "failed/taxi_trips": {
+        "exists": true,
+        "disk_bytes": 279223490,
+        "delta_log_bytes": 3210320,
+        "parquet_bytes_on_disk": 273859262,
+        "parquet_files_on_disk": 864,
+        "current_version_bytes": 273859262,
+        "current_version_files": 864,
+        "delta_version": 25
+      },
+      "failed/weather": {
+        "exists": true,
+        "disk_bytes": 46392,
+        "delta_log_bytes": 21150,
+        "parquet_bytes_on_disk": 25002,
+        "parquet_files_on_disk": 4,
+        "current_version_bytes": 9426,
+        "current_version_files": 1,
+        "delta_version": 1
+      },
+      "failed/air_quality": {
+        "exists": true,
+        "disk_bytes": 20599186,
+        "delta_log_bytes": 198926,
+        "parquet_bytes_on_disk": 20241484,
+        "parquet_files_on_disk": 64,
+        "current_version_bytes": 20241484,
+        "current_version_files": 64,
+        "delta_version": 0
+      },
+      "metadata/ingestion_runs": {
+        "exists": true,
+        "disk_bytes": 5296189,
+        "delta_log_bytes": 4066983,
+        "parquet_bytes_on_disk": 1211634,
+        "parquet_files_on_disk": 186,
+        "current_version_bytes": 961410,
+        "current_version_files": 93,
+        "delta_version": 92
+      },
+      "metadata/validation_failure_events": {
+        "exists": true,
+        "disk_bytes": 246392,
+        "delta_log_bytes": 186755,
+        "parquet_bytes_on_disk": 58917,
+        "parquet_files_on_disk": 30,
+        "current_version_bytes": 45657,
+        "current_version_files": 15,
+        "delta_version": 14
+      },
+      "metadata/monitoring_writes": {
+        "exists": true,
+        "disk_bytes": 2105810,
+        "delta_log_bytes": 1763669,
+        "parquet_bytes_on_disk": 337965,
+        "parquet_files_on_disk": 174,
+        "current_version_bytes": 249486,
+        "current_version_files": 87,
+        "delta_version": 86
+      }
+    },
+    "after": {
+      "taxi_trips": {
+        "exists": true,
+        "disk_bytes": 2528495267,
+        "delta_log_bytes": 8095036,
+        "parquet_bytes_on_disk": 2500850767,
+        "parquet_files_on_disk": 335,
+        "current_version_bytes": 959718630,
+        "current_version_files": 215,
+        "delta_version": 74
+      },
+      "weather": {
+        "exists": true,
+        "disk_bytes": 5940875,
+        "delta_log_bytes": 4359952,
+        "parquet_bytes_on_disk": 1561551,
+        "parquet_files_on_disk": 107,
+        "current_version_bytes": 891905,
+        "current_version_files": 65,
+        "delta_version": 75
+      },
+      "air_quality": {
+        "exists": true,
+        "disk_bytes": 1169201537,
+        "delta_log_bytes": 16571338,
+        "parquet_bytes_on_disk": 1143681087,
+        "parquet_files_on_disk": 803,
+        "current_version_bytes": 670098659,
+        "current_version_files": 769,
+        "delta_version": 74
+      },
+      "integrated_taxi_trips": {
+        "exists": true,
+        "disk_bytes": 6805024540,
+        "delta_log_bytes": 4590771,
+        "parquet_bytes_on_disk": 6747706109,
+        "parquet_files_on_disk": 303,
+        "current_version_bytes": 1027985861,
+        "current_version_files": 29,
+        "delta_version": 36
+      },
+      "analytical_products/airport_transfer_summary": {
+        "exists": true,
+        "disk_bytes": 6386462,
+        "delta_log_bytes": 1666890,
+        "parquet_bytes_on_disk": 4682408,
+        "parquet_files_on_disk": 58,
+        "current_version_bytes": 103500,
+        "current_version_files": 1,
+        "delta_version": 71
+      },
+      "analytical_products/fare_and_tip_patterns": {
+        "exists": true,
+        "disk_bytes": 2269376,
+        "delta_log_bytes": 1655805,
+        "parquet_bytes_on_disk": 608279,
+        "parquet_files_on_disk": 53,
+        "current_version_bytes": 12611,
+        "current_version_files": 1,
+        "delta_version": 71
+      },
+      "analytical_products/origin_destination_flow": {
+        "exists": true,
+        "disk_bytes": 102433866,
+        "delta_log_bytes": 3941032,
+        "parquet_bytes_on_disk": 97725238,
+        "parquet_files_on_disk": 426,
+        "current_version_bytes": 2031066,
+        "current_version_files": 8,
+        "delta_version": 71
+      },
+      "analytical_products/trip_distance_distribution": {
+        "exists": true,
+        "disk_bytes": 1944766,
+        "delta_log_bytes": 1442478,
+        "parquet_bytes_on_disk": 497892,
+        "parquet_files_on_disk": 53,
+        "current_version_bytes": 10502,
+        "current_version_files": 1,
+        "delta_version": 71
+      },
+      "analytical_products/weather_sensitive_zone_demand": {
+        "exists": true,
+        "disk_bytes": 5802606,
+        "delta_log_bytes": 1582100,
+        "parquet_bytes_on_disk": 4187278,
+        "parquet_files_on_disk": 53,
+        "current_version_bytes": 89038,
+        "current_version_files": 1,
+        "delta_version": 71
+      },
+      "analytical_products/zone_hourly_demand_profile": {
+        "exists": true,
+        "disk_bytes": 218689618,
+        "delta_log_bytes": 6131081,
+        "parquet_bytes_on_disk": 210901969,
+        "parquet_files_on_disk": 878,
+        "current_version_bytes": 4380477,
+        "current_version_files": 16,
+        "delta_version": 71
+      },
+      "failed/taxi_trips": {
+        "exists": true,
+        "disk_bytes": 279223490,
+        "delta_log_bytes": 3210320,
+        "parquet_bytes_on_disk": 273859262,
+        "parquet_files_on_disk": 864,
+        "current_version_bytes": 273859262,
+        "current_version_files": 864,
+        "delta_version": 25
+      },
+      "failed/weather": {
+        "exists": true,
+        "disk_bytes": 46392,
+        "delta_log_bytes": 21150,
+        "parquet_bytes_on_disk": 25002,
+        "parquet_files_on_disk": 4,
+        "current_version_bytes": 9426,
+        "current_version_files": 1,
+        "delta_version": 1
+      },
+      "failed/air_quality": {
+        "exists": true,
+        "disk_bytes": 20599186,
+        "delta_log_bytes": 198926,
+        "parquet_bytes_on_disk": 20241484,
+        "parquet_files_on_disk": 64,
+        "current_version_bytes": 20241484,
+        "current_version_files": 64,
+        "delta_version": 0
+      },
+      "metadata/ingestion_runs": {
+        "exists": true,
+        "disk_bytes": 5441204,
+        "delta_log_bytes": 4120071,
+        "parquet_bytes_on_disk": 1302697,
+        "parquet_files_on_disk": 200,
+        "current_version_bytes": 1033307,
+        "current_version_files": 100,
+        "delta_version": 99
+      },
+      "metadata/validation_failure_events": {
+        "exists": true,
+        "disk_bytes": 246392,
+        "delta_log_bytes": 186755,
+        "parquet_bytes_on_disk": 58917,
+        "parquet_files_on_disk": 30,
+        "current_version_bytes": 45657,
+        "current_version_files": 15,
+        "delta_version": 14
+      },
+      "metadata/monitoring_writes": {
+        "exists": true,
+        "disk_bytes": 2210398,
+        "delta_log_bytes": 1840169,
+        "parquet_bytes_on_disk": 365717,
+        "parquet_files_on_disk": 188,
+        "current_version_bytes": 270119,
+        "current_version_files": 94,
+        "delta_version": 93
+      }
+    }
+  }
+}

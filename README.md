@@ -89,9 +89,12 @@ data-intensive-computing/
 │   │   ├── benchmark_report.pdf
 │   │   ├── design_report.pdf
 │   │   └── common_data_model.md
-│   └── lab2/
-│       ├── Iab2_benchmark.pdf
-│       └── lab2_short_report.pdf
+│   ├── lab2/
+│   │   ├── Iab2_benchmark.pdf
+│   │   └── lab2_short_report.pdf
+│   └── lab3/
+│       ├── evaluation_report.pdf
+│       └── evaluation_report.tex
 ├── src/
 │   └── data_intensive_computing/
 │       ├── task1/
