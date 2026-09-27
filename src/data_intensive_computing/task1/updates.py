@@ -112,6 +112,11 @@ def generate_taxi_update(
     _require_fraction("duplicate_fraction", duplicate_fraction, 0.01, 0.02)
     config = DATASETS["taxi_trips"]
     source = spark.read.parquet(str(config.source_path(project_root))).select(*config.raw_columns)
+    # TLC timestamps are New York wall-clock times without a time zone.
+    # Interpret them in the session time zone (as ingestion does) before any
+    # epoch arithmetic; unix_timestamp() would otherwise treat them as UTC.
+    for name in ("tpep_pickup_datetime", "tpep_dropoff_datetime"):
+        source = source.withColumn(name, F.col(name).cast("timestamp"))
     original_records = source.count()
     if original_records == 0:
         raise ValueError("Cannot generate taxi updates from an empty source")
