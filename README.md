@@ -369,6 +369,18 @@ is not committed. `prepare` sets the retention period of the evaluated tables
 to 365 days so that `RESTORE` is not blocked. The restored versions leave
 unreferenced files on disk; remove them with `VACUUM` after the evaluation.
 
+## Week 4 Tasks 1–2: fare prediction dataset and features
+
+`notebooks/week4_task1_fare_training_dataset.ipynb` builds a trip-level fare
+prediction dataset from `integrated_taxi_trips`. It selects Bronx, Brooklyn,
+Manhattan, and Queens, defines `fare_amount` as the label, creates temporal
+features, and assigns chronological train, validation, and test splits.
+
+`notebooks/week4_task2_fare_feature_pipeline.ipynb` builds a reusable Spark ML
+feature pipeline. It handles missing values, encodes categorical columns,
+scales continuous features with `RobustScaler`, and produces the final feature
+vectors used by the fare machine learning model.
+
 ## Complete execution order
 
 1. Build the processed Delta tables:
