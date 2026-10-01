@@ -388,12 +388,12 @@ vectors used by the fare machine learning model.
 ### Task 3 implementation
 
 `notebooks/w4_task3.ipynb` implements the complete reproducible ML workflow.
-It loads the Task 1 Delta table, applies the Task 2 preprocessing stages,
-trains regularized Spark linear regression on Train only, evaluates Validation
-and Test against a Train-mean baseline, and saves the preprocessing and model
-together as one `PipelineModel`. The notebook also records the source Delta
-version, split profile, parameters, Spark configuration, metrics, and phase
-timings in a JSON manifest.
+It loads the feature Delta table and fitted feature `PipelineModel` saved by
+Task 2, trains regularized Spark linear regression on Train only, evaluates
+Validation and Test against a Train-mean baseline, and combines Task 2
+preprocessing with the regressor as one complete `PipelineModel`. The notebook
+records both upstream Delta versions, feature artifact information, parameters,
+metrics, Spark configuration, and phase timings in a JSON manifest.
 
 ## Complete execution order
 
@@ -427,11 +427,14 @@ Shut down other Spark notebook kernels first, open
 bottom. The notebook uses `local[2]`, a 4 GB Spark driver, and eight shuffle
 partitions to avoid exhausting Windows memory and page-file resources.
 
-Task 3 reads `data/processed/ml/fare_training_dataset` directly. Therefore
-Task 1 must have completed successfully. Task 2 can be run independently to
-inspect its feature output, but Task 3 refits the same feature stages as part
-of the complete pipeline and does not require the persisted Task 2 feature
-table.
+Task 3 requires both Task 2 outputs:
+
+- `data/processed/ml/fare_feature_dataset`
+- `data/models/fare_feature_pipeline`
+
+Run Task 1 and Task 2 successfully before Task 3. Task 2 is the single source
+of truth for feature selection and preprocessing; Task 3 does not redefine or
+refit those stages.
 
 The default outputs are:
 
@@ -439,10 +442,10 @@ The default outputs are:
 - `artifacts/week4_fare_metrics.json`: split profile, Delta version, parameters,
   Spark configuration, MAE/RMSE/R2, and phase timings
 
-To retrain after new valid data has been integrated, rerun Task 1 and then run
-Task 3 from top to bottom. The same feature and model definitions are refitted
-on the new Train split, the saved model is replaced, and the new Delta version
-and run ID are written to the metrics manifest.
+To retrain after new valid data has been integrated, rerun Task 1, Task 2, and
+Task 3 in order. Task 2 refits preprocessing and rewrites the feature dataset;
+Task 3 refits the regressor, replaces the complete saved model, and records the
+new upstream Delta versions and run ID.
 
 For the later Week 4 Task 4 comparison, `artifacts/week4_fare_metrics.json`
 provides the platform run's Delta version, split profile, Spark configuration,

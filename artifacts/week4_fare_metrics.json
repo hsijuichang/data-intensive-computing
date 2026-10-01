@@ -1,37 +1,9 @@
 {
   "algorithm": "Spark LinearRegression",
   "features": {
-    "binary": [
-      "is_weekend",
-      "air_quality_missing"
-    ],
-    "categorical": [
-      "pickup_zone_cat",
-      "dropoff_zone_cat",
-      "pickup_borough_cat",
-      "dropoff_borough_cat",
-      "vendor_id_cat",
-      "rate_code_id_cat",
-      "store_and_fwd_flag_cat",
-      "weather_condition_code_cat"
-    ],
-    "continuous": [
-      "trip_distance",
-      "passenger_count_imputed",
-      "pickup_month_of_year",
-      "weather_temperature_c",
-      "weather_relative_humidity_pct_imputed",
-      "weather_precipitation_mm_imputed",
-      "weather_wind_speed_kmh",
-      "weather_pressure_hpa",
-      "air_quality_pm25_mean_imputed"
-    ],
-    "cyclical": [
-      "pickup_hour_sin",
-      "pickup_hour_cos",
-      "pickup_dow_sin",
-      "pickup_dow_cos"
-    ]
+    "pipeline_path": "D:\\Master\\data intensive\\data-intensive-computing\\data\\models\\fare_feature_pipeline",
+    "source": "Task 2 fitted feature pipeline",
+    "vector_dimension": 561
   },
   "hyperparameters": {
     "elastic_net_param": 0.0,
@@ -41,52 +13,58 @@
     "standardization": false
   },
   "input": {
-    "delta_version": 2,
-    "path": "D:\\Master\\data intensive\\data-intensive-computing\\data\\processed\\ml\\fare_training_dataset",
-    "splits": {
-      "test": {
-        "first_pickup": "2024-03-16T05:00:00",
-        "last_pickup": "2024-04-01T05:59:59",
-        "mean_label": 19.412305108935886,
-        "row_count": 1783894
-      },
-      "train": {
-        "first_pickup": "2024-01-01T06:00:00",
-        "last_pickup": "2024-03-01T05:59:58",
-        "mean_label": 18.54631074880934,
-        "row_count": 5870362
-      },
-      "validation": {
-        "first_pickup": "2024-03-01T06:00:00",
-        "last_pickup": "2024-03-16T04:59:59",
-        "mean_label": 19.015878956158584,
-        "row_count": 1726201
+    "task1_training_dataset": {
+      "delta_version": 2,
+      "path": "D:\\Master\\data intensive\\data-intensive-computing\\data\\processed\\ml\\fare_training_dataset"
+    },
+    "task2_feature_dataset": {
+      "delta_version": 0,
+      "path": "D:\\Master\\data intensive\\data-intensive-computing\\data\\processed\\ml\\fare_feature_dataset",
+      "splits": {
+        "test": {
+          "first_pickup": "2024-03-16T05:00:00",
+          "last_pickup": "2024-04-01T05:59:59",
+          "mean_label": 19.412305108935886,
+          "row_count": 1783894
+        },
+        "train": {
+          "first_pickup": "2024-01-01T06:00:00",
+          "last_pickup": "2024-03-01T05:59:58",
+          "mean_label": 18.54631074880932,
+          "row_count": 5870362
+        },
+        "validation": {
+          "first_pickup": "2024-03-01T06:00:00",
+          "last_pickup": "2024-03-16T04:59:59",
+          "mean_label": 19.015878956158584,
+          "row_count": 1726201
+        }
       }
     }
   },
   "metrics": {
     "model": {
       "test": {
-        "mae": 6.996944909147219,
-        "r2": 0.617767191813297,
-        "rmse": 10.810044551258805
+        "mae": 6.996983272326323,
+        "r2": 0.617763966297236,
+        "rmse": 10.810090162072443
       },
       "validation": {
-        "mae": 6.806176455922843,
-        "r2": 0.6118146717803717,
-        "rmse": 10.54871987925119
+        "mae": 6.8062108692577645,
+        "r2": 0.6118116366043727,
+        "rmse": 10.548761118778405
       }
     },
     "train_mean_baseline": {
-      "prediction": 18.54631074880934,
+      "prediction": 18.54631074880932,
       "test": {
-        "mae": 11.190630015547177,
-        "r2": -0.002453031474799694,
-        "rmse": 17.506346495024122
+        "mae": 11.190630015547175,
+        "r2": -0.00245303147480036,
+        "rmse": 17.506346495024125
       },
       "validation": {
-        "mae": 10.898993065847153,
-        "r2": -0.0007691959106213009,
+        "mae": 10.89899306584715,
+        "r2": -0.0007691959106215229,
         "rmse": 16.93741645174195
       }
     }
@@ -103,8 +81,8 @@
     "LinearRegressionModel"
   ],
   "prediction_task": "fare_amount_regression",
-  "recorded_at": "2026-10-01T17:26:12.498586+00:00",
-  "run_id": "e19359b6-ab35-441b-b305-ff66ff40037d",
+  "recorded_at": "2026-10-01T19:11:22.855591+00:00",
+  "run_id": "748eb2e2-ba1d-46ad-a29a-066823178b95",
   "spark": {
     "driver_memory": "4g",
     "master": "local[2]",
@@ -114,9 +92,9 @@
   },
   "target": "fare_amount_usd",
   "timings_seconds": {
-    "end_to_end": 335.3145,
-    "evaluate": 16.8304,
-    "fit": 310.6337,
-    "save": 6.4484
+    "end_to_end": 100.4282,
+    "evaluate": 3.1039,
+    "fit": 88.2416,
+    "save": 7.7032
   }
 }
