@@ -56,7 +56,8 @@ data-intensive-computing/
 │   ├── task5_evaluation_results.jsonl
 │   ├── task5_storage.json
 │   ├── task5_summary.json
-│   └── ten_city_scaling_results.json
+│   ├── ten_city_scaling_results.json
+│   └── week4_fare_metrics.json
 ├── notebooks/
 │   ├── data_products/
 │   │   ├── product_utils.py
@@ -81,7 +82,10 @@ data-intensive-computing/
 │   ├── integrated_taxi_trips.ipynb
 │   ├── analytical_queries.ipynb
 │   ├── evaluate.ipynb
-│   └── benchmark.ipynb
+│   ├── benchmark.ipynb
+│   ├── w4_task1.ipynb
+│   ├── w4_task2.ipynb
+│   └── w4_task3.ipynb
 ├── reports/
 │   ├── lab1/
 │   │   ├── architecture.png
@@ -381,6 +385,16 @@ feature pipeline. It handles missing values, encodes categorical columns,
 scales continuous features with `RobustScaler`, and produces the final feature
 vectors used by the fare machine learning model.
 
+### Task 3 implementation
+
+`notebooks/w4_task3.ipynb` implements the complete reproducible ML workflow.
+It loads the Task 1 Delta table, applies the Task 2 preprocessing stages,
+trains regularized Spark linear regression on Train only, evaluates Validation
+and Test against a Train-mean baseline, and saves the preprocessing and model
+together as one `PipelineModel`. The notebook also records the source Delta
+version, split profile, parameters, Spark configuration, metrics, and phase
+timings in a JSON manifest.
+
 ## Complete execution order
 
 1. Build the processed Delta tables:
@@ -406,11 +420,18 @@ January through March 2024, so the notebook uses January-February for Train
 and divides March into Validation and Test periods.
 
 Run `notebooks/w4_task2.ipynb` to build and inspect the reusable feature
-pipeline. Then run `notebooks/w4_task3.ipynb` from top to bottom. Task 3
-recreates the same imputing, categorical encoding, robust scaling, and vector
-assembly stages, adds regularized Spark linear regression, fits every learned
-stage on Train only, evaluates Validation and Test, and saves one complete
-`PipelineModel`.
+pipeline.
+
+Shut down other Spark notebook kernels first, open
+`notebooks/w4_task3.ipynb`, restart its kernel, and run all cells from top to
+bottom. The notebook uses `local[2]`, a 4 GB Spark driver, and eight shuffle
+partitions to avoid exhausting Windows memory and page-file resources.
+
+Task 3 reads `data/processed/ml/fare_training_dataset` directly. Therefore
+Task 1 must have completed successfully. Task 2 can be run independently to
+inspect its feature output, but Task 3 refits the same feature stages as part
+of the complete pipeline and does not require the persisted Task 2 feature
+table.
 
 The default outputs are:
 
@@ -418,9 +439,10 @@ The default outputs are:
 - `artifacts/week4_fare_metrics.json`: split profile, Delta version, parameters,
   Spark configuration, MAE/RMSE/R2, and phase timings
 
-After new valid data has been integrated, rerun Task 1 and Task 3 to retrain
-with the same pipeline definition. Model parameters and paths are defined near
-the start of the Task 3 notebook.
+To retrain after new valid data has been integrated, rerun Task 1 and then run
+Task 3 from top to bottom. The same feature and model definitions are refitted
+on the new Train split, the saved model is replaced, and the new Delta version
+and run ID are written to the metrics manifest.
 
 For the later Week 4 Task 4 comparison, `artifacts/week4_fare_metrics.json`
 provides the platform run's Delta version, split profile, Spark configuration,
