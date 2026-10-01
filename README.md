@@ -396,3 +396,33 @@ vectors used by the fare machine learning model.
    full Week 2 rebuild is intentionally required.
 7. Run the Week 3 Task 5 evaluation with the commands above.
    `notebooks/evaluate.ipynb` contains the Week 2 optimization evaluation.
+
+## Week 4: reproducible fare prediction
+
+Week 4 predicts the non-negative base fare for one taxi trip. Run
+`notebooks/w4_task1.ipynb` first to rebuild the chronological Train,
+Validation, and Test Delta table. The current shared raw baseline covers
+January through March 2024, so the notebook uses January-February for Train
+and divides March into Validation and Test periods.
+
+Run `notebooks/w4_task2.ipynb` to build and inspect the reusable feature
+pipeline. Then run `notebooks/w4_task3.ipynb` from top to bottom. Task 3
+recreates the same imputing, categorical encoding, robust scaling, and vector
+assembly stages, adds regularized Spark linear regression, fits every learned
+stage on Train only, evaluates Validation and Test, and saves one complete
+`PipelineModel`.
+
+The default outputs are:
+
+- `data/models/fare_prediction_pipeline`: complete fitted feature/model pipeline
+- `artifacts/week4_fare_metrics.json`: split profile, Delta version, parameters,
+  Spark configuration, MAE/RMSE/R2, and phase timings
+
+After new valid data has been integrated, rerun Task 1 and Task 3 to retrain
+with the same pipeline definition. Model parameters and paths are defined near
+the start of the Task 3 notebook.
+
+For the later Week 4 Task 4 comparison, `artifacts/week4_fare_metrics.json`
+provides the platform run's Delta version, split profile, Spark configuration,
+model parameters, metrics, and phase timings. Task 4 remains a separate
+workflow and should rerun both approaches under the same configuration.

@@ -1,0 +1,122 @@
+{
+  "algorithm": "Spark LinearRegression",
+  "features": {
+    "binary": [
+      "is_weekend",
+      "air_quality_missing"
+    ],
+    "categorical": [
+      "pickup_zone_cat",
+      "dropoff_zone_cat",
+      "pickup_borough_cat",
+      "dropoff_borough_cat",
+      "vendor_id_cat",
+      "rate_code_id_cat",
+      "store_and_fwd_flag_cat",
+      "weather_condition_code_cat"
+    ],
+    "continuous": [
+      "trip_distance",
+      "passenger_count_imputed",
+      "pickup_month_of_year",
+      "weather_temperature_c",
+      "weather_relative_humidity_pct_imputed",
+      "weather_precipitation_mm_imputed",
+      "weather_wind_speed_kmh",
+      "weather_pressure_hpa",
+      "air_quality_pm25_mean_imputed"
+    ],
+    "cyclical": [
+      "pickup_hour_sin",
+      "pickup_hour_cos",
+      "pickup_dow_sin",
+      "pickup_dow_cos"
+    ]
+  },
+  "hyperparameters": {
+    "elastic_net_param": 0.0,
+    "max_iter": 50,
+    "reg_param": 0.1,
+    "solver": "l-bfgs",
+    "standardization": false
+  },
+  "input": {
+    "delta_version": 2,
+    "path": "D:\\Master\\data intensive\\data-intensive-computing\\data\\processed\\ml\\fare_training_dataset",
+    "splits": {
+      "test": {
+        "first_pickup": "2024-03-16T05:00:00",
+        "last_pickup": "2024-04-01T05:59:59",
+        "mean_label": 19.412305108935886,
+        "row_count": 1783894
+      },
+      "train": {
+        "first_pickup": "2024-01-01T06:00:00",
+        "last_pickup": "2024-03-01T05:59:58",
+        "mean_label": 18.54631074880934,
+        "row_count": 5870362
+      },
+      "validation": {
+        "first_pickup": "2024-03-01T06:00:00",
+        "last_pickup": "2024-03-16T04:59:59",
+        "mean_label": 19.015878956158584,
+        "row_count": 1726201
+      }
+    }
+  },
+  "metrics": {
+    "model": {
+      "test": {
+        "mae": 6.996944909147219,
+        "r2": 0.617767191813297,
+        "rmse": 10.810044551258805
+      },
+      "validation": {
+        "mae": 6.806176455922843,
+        "r2": 0.6118146717803717,
+        "rmse": 10.54871987925119
+      }
+    },
+    "train_mean_baseline": {
+      "prediction": 18.54631074880934,
+      "test": {
+        "mae": 11.190630015547177,
+        "r2": -0.002453031474799694,
+        "rmse": 17.506346495024122
+      },
+      "validation": {
+        "mae": 10.898993065847153,
+        "r2": -0.0007691959106213009,
+        "rmse": 16.93741645174195
+      }
+    }
+  },
+  "model_path": "D:\\Master\\data intensive\\data-intensive-computing\\data\\models\\fare_prediction_pipeline",
+  "pipeline_stages": [
+    "SQLTransformer",
+    "ImputerModel",
+    "StringIndexerModel",
+    "OneHotEncoderModel",
+    "VectorAssembler",
+    "RobustScalerModel",
+    "VectorAssembler",
+    "LinearRegressionModel"
+  ],
+  "prediction_task": "fare_amount_regression",
+  "recorded_at": "2026-10-01T17:26:12.498586+00:00",
+  "run_id": "e19359b6-ab35-441b-b305-ff66ff40037d",
+  "spark": {
+    "driver_memory": "4g",
+    "master": "local[2]",
+    "session_time_zone": "America/New_York",
+    "shuffle_partitions": "8",
+    "version": "4.2.0"
+  },
+  "target": "fare_amount_usd",
+  "timings_seconds": {
+    "end_to_end": 335.3145,
+    "evaluate": 16.8304,
+    "fit": 310.6337,
+    "save": 6.4484
+  }
+}

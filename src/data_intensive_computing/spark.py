@@ -42,6 +42,7 @@ def build_spark_session(
     *,
     driver_memory: str = "8g",
     shuffle_partitions: int = 32,
+    master: str = "local[*]",
 ) -> "SparkSession":
     """Create a local Spark session with Delta Lake and the platform time zone."""
     if os.name == "nt":
@@ -58,7 +59,7 @@ def build_spark_session(
 
     builder = (
         SparkSession.builder.appName(app_name)
-        .master("local[*]")
+        .master(master)
         .config("spark.driver.memory", driver_memory)
         .config("spark.default.parallelism", str(shuffle_partitions))
         .config("spark.sql.shuffle.partitions", str(shuffle_partitions))
