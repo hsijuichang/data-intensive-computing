@@ -1,0 +1,131 @@
+{
+  "recorded_at": "2026-10-04T11:43:13.990743+00:00",
+  "original_root": "/Users/rexchang/Documents/KTH/Courses/26-Fall-P1/Data-Intensive-Computing/Homework/data-intensive-computing",
+  "rebuild_copy_root": "/Users/rexchang/task4_rebuild_copy",
+  "spark_version": "4.2.0",
+  "compared_columns": "business columns only (columns not starting with '_')",
+  "run_to_run": {
+    "taxi_zones": {
+      "left": "copy@v0",
+      "right": "copy@v3",
+      "same_business_schema": true,
+      "left_rows": 265,
+      "right_rows": 265,
+      "only_left_rows": 0,
+      "only_right_rows": 0,
+      "identical": true
+    },
+    "weather": {
+      "left": "copy@v0",
+      "right": "copy@v3",
+      "same_business_schema": true,
+      "left_rows": 8783,
+      "right_rows": 8783,
+      "only_left_rows": 0,
+      "only_right_rows": 0,
+      "identical": true
+    },
+    "taxi_trips": {
+      "left": "copy@v0",
+      "right": "copy@v3",
+      "same_business_schema": true,
+      "left_rows": 9417689,
+      "right_rows": 9417689,
+      "only_left_rows": 0,
+      "only_right_rows": 0,
+      "identical": true
+    },
+    "air_quality": {
+      "left": "copy@v0",
+      "right": "copy@v3",
+      "same_business_schema": true,
+      "left_rows": 7927367,
+      "right_rows": 7927367,
+      "only_left_rows": 0,
+      "only_right_rows": 0,
+      "identical": true
+    },
+    "integrated_taxi_trips": {
+      "left": "copy@v0",
+      "right": "copy@v3",
+      "same_business_schema": true,
+      "left_rows": 9417689,
+      "right_rows": 9417689,
+      "only_left_rows": 0,
+      "only_right_rows": 0,
+      "identical": true
+    },
+    "fare_training_dataset": {
+      "left": "copy@v0",
+      "right": "copy@v3",
+      "same_business_schema": true,
+      "left_rows": 9380457,
+      "right_rows": 9380457,
+      "only_left_rows": 0,
+      "only_right_rows": 0,
+      "identical": true
+    }
+  },
+  "original_vs_rebuild": {
+    "taxi_zones": {
+      "left": "original",
+      "right": "copy@latest",
+      "same_business_schema": true,
+      "left_rows": 265,
+      "right_rows": 265,
+      "only_left_rows": 0,
+      "only_right_rows": 0,
+      "identical": true
+    },
+    "weather": {
+      "left": "original",
+      "right": "copy@latest",
+      "same_business_schema": true,
+      "left_rows": 8783,
+      "right_rows": 8783,
+      "only_left_rows": 0,
+      "only_right_rows": 0,
+      "identical": true
+    },
+    "taxi_trips": {
+      "left": "original",
+      "right": "copy@latest",
+      "same_business_schema": true,
+      "left_rows": 9417689,
+      "right_rows": 9417689,
+      "only_left_rows": 0,
+      "only_right_rows": 0,
+      "identical": true
+    },
+    "air_quality": {
+      "left": "original",
+      "right": "copy@latest",
+      "same_business_schema": true,
+      "left_rows": 7927367,
+      "right_rows": 7927367,
+      "only_left_rows": 0,
+      "only_right_rows": 0,
+      "identical": true
+    },
+    "integrated_taxi_trips": {
+      "left": "original",
+      "right": "copy@latest",
+      "same_business_schema": true,
+      "left_rows": 9417689,
+      "right_rows": 9417689,
+      "only_left_rows": 0,
+      "only_right_rows": 0,
+      "identical": true
+    },
+    "fare_training_dataset": {
+      "left": "original",
+      "right": "copy@latest",
+      "same_business_schema": true,
+      "left_rows": 9380457,
+      "right_rows": 9380457,
+      "only_left_rows": 0,
+      "only_right_rows": 0,
+      "identical": true
+    }
+  }
+}
