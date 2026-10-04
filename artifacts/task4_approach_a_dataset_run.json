@@ -1,0 +1,40 @@
+{
+  "approach": "raw",
+  "output_path": "/Users/rexchang/Documents/KTH/Courses/26-Fall-P1/Data-Intensive-Computing/Homework/data-intensive-computing/data/processed/ml_raw/fare_training_dataset",
+  "recorded_at": "2026-10-04T09:58:17.099887+00:00",
+  "row_counts": {
+    "air_quality_borough_hours": 26348,
+    "clean_taxi": 9417689,
+    "raw_taxi": 9554778,
+    "splits": {
+      "test": 1783894,
+      "train": 5870362,
+      "validation": 1726201
+    },
+    "weather_hours": 8783,
+    "zones": 265
+  },
+  "run_id": "96b12910-11cc-4c1c-b80e-1a9f58564c0c",
+  "selected_boroughs": [
+    "Bronx",
+    "Brooklyn",
+    "Manhattan",
+    "Queens"
+  ],
+  "spark": {
+    "driver_memory": "8g",
+    "master": "local[*]",
+    "session_time_zone": "America/New_York",
+    "shuffle_partitions": "32",
+    "version": "4.2.0"
+  },
+  "timings_seconds": {
+    "air_quality_prepare": 2.9348,
+    "borough_selection": 0.8,
+    "session_start_to_dataset_written": 28.1186,
+    "taxi_clean": 11.8492,
+    "weather_prepare": 0.2136,
+    "write_dataset": 7.6373,
+    "zones_prepare": 0.1376
+  }
+}
