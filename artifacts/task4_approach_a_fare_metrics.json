@@ -1,0 +1,101 @@
+{
+  "algorithm": "Spark LinearRegression",
+  "features": {
+    "pipeline_path": "/Users/rexchang/Documents/KTH/Courses/26-Fall-P1/Data-Intensive-Computing/Homework/data-intensive-computing/data/models/raw/fare_feature_pipeline",
+    "source": "Task 2 fitted feature pipeline",
+    "vector_dimension": 561
+  },
+  "hyperparameters": {
+    "elastic_net_param": 0.0,
+    "max_iter": 50,
+    "reg_param": 0.1,
+    "solver": "l-bfgs",
+    "standardization": false
+  },
+  "input": {
+    "task1_training_dataset": {
+      "delta_version": 0,
+      "path": "/Users/rexchang/Documents/KTH/Courses/26-Fall-P1/Data-Intensive-Computing/Homework/data-intensive-computing/data/processed/ml_raw/fare_training_dataset"
+    },
+    "task2_feature_dataset": {
+      "delta_version": 0,
+      "path": "/Users/rexchang/Documents/KTH/Courses/26-Fall-P1/Data-Intensive-Computing/Homework/data-intensive-computing/data/processed/ml_raw/fare_feature_dataset",
+      "splits": {
+        "test": {
+          "first_pickup": "2024-03-16T05:00:00",
+          "last_pickup": "2024-04-01T05:59:59",
+          "mean_label": 19.412305108935808,
+          "row_count": 1783894
+        },
+        "train": {
+          "first_pickup": "2024-01-01T06:00:00",
+          "last_pickup": "2024-03-01T05:59:58",
+          "mean_label": 18.54631074880906,
+          "row_count": 5870362
+        },
+        "validation": {
+          "first_pickup": "2024-03-01T06:00:00",
+          "last_pickup": "2024-03-16T04:59:59",
+          "mean_label": 19.01587895615869,
+          "row_count": 1726201
+        }
+      }
+    }
+  },
+  "metrics": {
+    "model": {
+      "test": {
+        "mae": 6.996985745852254,
+        "r2": 0.6177637590123903,
+        "rmse": 10.810093093198889
+      },
+      "validation": {
+        "mae": 6.806213089609682,
+        "r2": 0.6118114415836109,
+        "rmse": 10.548763768552883
+      }
+    },
+    "train_mean_baseline": {
+      "prediction": 18.54631074880906,
+      "test": {
+        "mae": 11.190630015548331,
+        "r2": -0.002453031477174683,
+        "rmse": 17.506346495037924
+      },
+      "validation": {
+        "mae": 10.898993065847058,
+        "r2": -0.0007691959131050918,
+        "rmse": 16.93741645175483
+      }
+    }
+  },
+  "model_path": "/Users/rexchang/Documents/KTH/Courses/26-Fall-P1/Data-Intensive-Computing/Homework/data-intensive-computing/data/models/raw/fare_prediction_pipeline",
+  "pipeline_stages": [
+    "SQLTransformer",
+    "ImputerModel",
+    "StringIndexerModel",
+    "OneHotEncoderModel",
+    "VectorAssembler",
+    "RobustScalerModel",
+    "VectorAssembler",
+    "LinearRegressionModel"
+  ],
+  "prediction_task": "fare_amount_regression",
+  "recorded_at": "2026-10-04T08:59:36.959967+00:00",
+  "run_id": "869d207f-5881-40c7-a78a-ef77ae6521db",
+  "spark": {
+    "driver_memory": "4g",
+    "master": "local[2]",
+    "session_time_zone": "America/New_York",
+    "shuffle_partitions": "8",
+    "version": "4.2.0"
+  },
+  "target": "fare_amount_usd",
+  "timings_seconds": {
+    "end_to_end": 30.5469,
+    "evaluate": 0.9474,
+    "fit": 28.3061,
+    "save": 0.9346
+  },
+  "variant": "raw"
+}

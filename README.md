@@ -53,6 +53,8 @@ data-intensive-computing/
 │   ├── task1_incremental_results.jsonl
 │   ├── task2_refresh_results.jsonl
 │   ├── task3_benchmark_results.jsonl
+│   ├── task4_approach_a_dataset_run.json
+│   ├── task4_approach_a_fare_metrics.json
 │   ├── task5_evaluation_results.jsonl
 │   ├── task5_storage.json
 │   ├── task5_summary.json
@@ -85,7 +87,9 @@ data-intensive-computing/
 │   ├── benchmark.ipynb
 │   ├── w4_task1.ipynb
 │   ├── w4_task2.ipynb
-│   └── w4_task3.ipynb
+│   ├── w4_task3.ipynb
+│   ├── w4_task4_approach_a_raw_dataset.ipynb
+│   └── w4_task4_compare_approaches.ipynb
 ├── reports/
 │   ├── lab1/
 │   │   ├── architecture.png
@@ -140,6 +144,10 @@ data-intensive-computing/
 │       │   ├── experiments.py
 │       │   ├── snapshot.py
 │       │   └── summary.py
+│       ├── week4/
+│       │   ├── __init__.py
+│       │   ├── features.py
+│       │   └── modeling.py
 │       ├── __init__.py
 │       ├── benchmark_helpers.py
 │       └── spark.py
@@ -373,28 +381,6 @@ is not committed. `prepare` sets the retention period of the evaluated tables
 to 365 days so that `RESTORE` is not blocked. The restored versions leave
 unreferenced files on disk; remove them with `VACUUM` after the evaluation.
 
-## Week 4 Tasks 1–2: fare prediction dataset and features
-
-`notebooks/week4_task1_fare_training_dataset.ipynb` builds a trip-level fare
-prediction dataset from `integrated_taxi_trips`. It selects Bronx, Brooklyn,
-Manhattan, and Queens, defines `fare_amount` as the label, creates temporal
-features, and assigns chronological train, validation, and test splits.
-
-`notebooks/week4_task2_fare_feature_pipeline.ipynb` builds a reusable Spark ML
-feature pipeline. It handles missing values, encodes categorical columns,
-scales continuous features with `RobustScaler`, and produces the final feature
-vectors used by the fare machine learning model.
-
-### Task 3 implementation
-
-`notebooks/w4_task3.ipynb` implements the complete reproducible ML workflow.
-It loads the feature Delta table and fitted feature `PipelineModel` saved by
-Task 2, trains regularized Spark linear regression on Train only, evaluates
-Validation and Test against a Train-mean baseline, and combines Task 2
-preprocessing with the regressor as one complete `PipelineModel`. The notebook
-records both upstream Delta versions, feature artifact information, parameters,
-metrics, Spark configuration, and phase timings in a JSON manifest.
-
 ## Complete execution order
 
 1. Build the processed Delta tables:
@@ -413,41 +399,103 @@ metrics, Spark configuration, and phase timings in a JSON manifest.
 
 ## Week 4: reproducible fare prediction
 
-Week 4 predicts the non-negative base fare for one taxi trip. Run
-`notebooks/w4_task1.ipynb` first to rebuild the chronological Train,
-Validation, and Test Delta table. The current shared raw baseline covers
-January through March 2024, so the notebook uses January-February for Train
-and divides March into Validation and Test periods.
+Week 4 predicts the non-negative base fare (`fare_amount`, in US dollars) for
+one taxi trip. The workflow is a chain of Delta tables and saved Spark ML
+models, so every step can be rerun from its upstream artifact.
 
-Run `notebooks/w4_task2.ipynb` to build and inspect the reusable feature
-pipeline.
+### Shared ML components
 
-Shut down other Spark notebook kernels first, open
-`notebooks/w4_task3.ipynb`, restart its kernel, and run all cells from top to
-bottom. The notebook uses `local[2]`, a 4 GB Spark driver, and eight shuffle
-partitions to avoid exhausting Windows memory and page-file resources.
+`src/data_intensive_computing/week4/` holds the definitions that every Week 4
+workflow imports:
 
-Task 3 requires both Task 2 outputs:
+- `features.py`: feature groups and `build_feature_pipeline()`, which returns
+  the unfitted seven-stage preprocessing pipeline (category preparation,
+  median imputation, string indexing, one-hot encoding, and robust scaling of
+  continuous values). This module is the single source of truth for features.
+  To add a feature, add the source column in Task 1 and update only this module.
+- `modeling.py`: the regressor configuration, `build_regressor()`, and
+  `evaluate_split()`, which computes model and Train-mean baseline MAE, RMSE,
+  and R2 in one Spark aggregation.
 
-- `data/processed/ml/fare_feature_dataset`
-- `data/models/fare_feature_pipeline`
+### Tasks 1–3: platform workflow (Approach B)
 
-Run Task 1 and Task 2 successfully before Task 3. Task 2 is the single source
-of truth for feature selection and preprocessing; Task 3 does not redefine or
-refit those stages.
+| Notebook | Reads | Writes |
+|---|---|---|
+| `w4_task1.ipynb` | `data/processed/integrated_taxi_trips` | `data/processed/ml/fare_training_dataset` |
+| `w4_task2.ipynb` | Task 1 dataset | `data/models/fare_feature_pipeline`, `data/processed/ml/fare_feature_dataset` |
+| `w4_task3.ipynb` | Task 2 outputs | `data/models/fare_prediction_pipeline`, `artifacts/week4_fare_metrics.json` |
 
-The default outputs are:
+- **Task 1** keeps boroughs with at least 10,000 Train trips (Bronx, Brooklyn,
+  Manhattan, Queens), defines the label, adds temporal and cyclic features,
+  excludes post-fare monetary columns that would leak the target, and assigns
+  chronological splits. The shared raw baseline covers January–March 2024, so
+  Train is January–February, Validation is 1–15 March, and Test is 16–31 March.
+- **Task 2** fits the shared feature pipeline on Train only and applies the
+  fitted pipeline unchanged to Validation and Test.
+- **Task 3** trains the shared regressor on the Train feature vectors, evaluates
+  Validation and Test against a Train-mean baseline, saves the preprocessing
+  and regressor together as one `PipelineModel`, and records upstream Delta
+  versions, parameters, Spark configuration, metrics, and phase timings.
 
-- `data/models/fare_prediction_pipeline`: complete fitted feature/model pipeline
-- `artifacts/week4_fare_metrics.json`: split profile, Delta version, parameters,
-  Spark configuration, MAE/RMSE/R2, and phase timings
+Run the notebooks in order 1 → 2 → 3, with one Spark kernel open at a time.
+Task 3 uses `local[2]`, a 4 GB driver, and eight shuffle partitions to avoid
+exhausting Windows memory and page-file resources.
 
 To retrain after new valid data has been integrated, rerun Task 1, Task 2, and
 Task 3 in order. Task 2 refits preprocessing and rewrites the feature dataset;
 Task 3 refits the regressor, replaces the complete saved model, and records the
 new upstream Delta versions and run ID.
 
-For the later Week 4 Task 4 comparison, `artifacts/week4_fare_metrics.json`
-provides the platform run's Delta version, split profile, Spark configuration,
-model parameters, metrics, and phase timings. Task 4 remains a separate
-workflow and should rerun both approaches under the same configuration.
+### Task 4: value of the data platform
+
+Task 4 builds the same training dataset in two ways and compares the effort,
+run time, and reproducibility of each.
+
+- **Approach A** (`w4_task4_approach_a_raw_dataset.ipynb`) starts from the six
+  files in `data/raw/` and does not read any platform table. It re-implements
+  every platform rule that affects the training rows: column typing, the
+  `trip_id` hash, the taxi, weather, air-quality, and zone validation rules,
+  primary-key deduplication, the zone/weather/air-quality joins, and the Task 1
+  logic. It writes `data/processed/ml_raw/fare_training_dataset` and per-stage
+  timings to `artifacts/task4_approach_a_dataset_run.json`, then checks that
+  the result is identical to the Approach B dataset. Set
+  `TASK4_SKIP_EQUIVALENCE_CHECK=1` to skip that check during timing runs.
+- **Approach B** is `w4_task1.ipynb`, which starts from `integrated_taxi_trips`.
+
+From feature engineering onward, both approaches run the **same** Task 2 and
+Task 3 notebooks. The environment variable `WEEK4_VARIANT` selects the input:
+
+| `WEEK4_VARIANT` | Training dataset | Models | Metrics |
+|---|---|---|---|
+| unset or `platform` | `data/processed/ml/` | `data/models/` | `artifacts/week4_fare_metrics.json` |
+| `raw` | `data/processed/ml_raw/` | `data/models/raw/` | `artifacts/task4_approach_a_fare_metrics.json` |
+
+Run the full comparison from the repository root. `nbconvert` executes each
+notebook in a fresh kernel and writes the executed copy to `--output-dir`, so
+the notebooks in the repository are not overwritten. `kernel_name=python3`
+selects the project `.venv` kernel regardless of the kernel name stored in the
+notebook metadata.
+
+```bash
+RUN="uv run jupyter nbconvert --to notebook --execute --ExecutePreprocessor.timeout=-1 --ExecutePreprocessor.kernel_name=python3"
+
+# Approach B
+$RUN notebooks/w4_task1.ipynb --output-dir /tmp/week4_runs
+$RUN notebooks/w4_task2.ipynb --output-dir /tmp/week4_runs
+$RUN notebooks/w4_task3.ipynb --output-dir /tmp/week4_runs
+
+# Approach A
+$RUN notebooks/w4_task4_approach_a_raw_dataset.ipynb --output-dir /tmp/week4_runs
+WEEK4_VARIANT=raw $RUN notebooks/w4_task2.ipynb --output-dir /tmp/week4_runs/raw
+WEEK4_VARIANT=raw $RUN notebooks/w4_task3.ipynb --output-dir /tmp/week4_runs/raw
+```
+
+Then open `notebooks/w4_task4_compare_approaches.ipynb` and run all cells. It
+compares the two runs at three levels: run configuration, fitted preprocessing
+statistics, and model metrics.
+
+Current result: the Approach A and Approach B training datasets are identical
+row for row and column for column, and the fitted preprocessing statistics are
+identical. Model metrics agree within about `1e-5`; the remaining difference
+comes from the iterative L-BFGS optimizer summing gradients in a different
+order, not from data preparation.
