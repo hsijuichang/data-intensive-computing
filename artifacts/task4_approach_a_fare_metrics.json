@@ -14,11 +14,11 @@
   },
   "input": {
     "task1_training_dataset": {
-      "delta_version": 0,
+      "delta_version": 6,
       "path": "/Users/rexchang/Documents/KTH/Courses/26-Fall-P1/Data-Intensive-Computing/Homework/data-intensive-computing/data/processed/ml_raw/fare_training_dataset"
     },
     "task2_feature_dataset": {
-      "delta_version": 0,
+      "delta_version": 4,
       "path": "/Users/rexchang/Documents/KTH/Courses/26-Fall-P1/Data-Intensive-Computing/Homework/data-intensive-computing/data/processed/ml_raw/fare_feature_dataset",
       "splits": {
         "test": {
@@ -45,14 +45,14 @@
   "metrics": {
     "model": {
       "test": {
-        "mae": 6.996985745852254,
-        "r2": 0.6177637590123903,
-        "rmse": 10.810093093198889
+        "mae": 6.99699216037337,
+        "r2": 0.6177632218594988,
+        "rmse": 10.81010068885584
       },
       "validation": {
-        "mae": 6.806213089609682,
-        "r2": 0.6118114415836109,
-        "rmse": 10.548763768552883
+        "mae": 6.806218848435142,
+        "r2": 0.6118109362301907,
+        "rmse": 10.548770634870808
       }
     },
     "train_mean_baseline": {
@@ -81,8 +81,8 @@
     "LinearRegressionModel"
   ],
   "prediction_task": "fare_amount_regression",
-  "recorded_at": "2026-10-04T08:59:36.959967+00:00",
-  "run_id": "869d207f-5881-40c7-a78a-ef77ae6521db",
+  "recorded_at": "2026-10-04T10:17:46.366457+00:00",
+  "run_id": "a9d914a8-c28a-480c-92a1-15353da6d2b7",
   "spark": {
     "driver_memory": "4g",
     "master": "local[2]",
@@ -92,10 +92,10 @@
   },
   "target": "fare_amount_usd",
   "timings_seconds": {
-    "end_to_end": 30.5469,
-    "evaluate": 0.9474,
-    "fit": 28.3061,
-    "save": 0.9346
+    "end_to_end": 29.6934,
+    "evaluate": 0.9609,
+    "fit": 27.4837,
+    "save": 0.9091
   },
   "variant": "raw"
 }

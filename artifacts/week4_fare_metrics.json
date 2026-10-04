@@ -14,11 +14,11 @@
   },
   "input": {
     "task1_training_dataset": {
-      "delta_version": 0,
+      "delta_version": 6,
       "path": "/Users/rexchang/Documents/KTH/Courses/26-Fall-P1/Data-Intensive-Computing/Homework/data-intensive-computing/data/processed/ml/fare_training_dataset"
     },
     "task2_feature_dataset": {
-      "delta_version": 1,
+      "delta_version": 5,
       "path": "/Users/rexchang/Documents/KTH/Courses/26-Fall-P1/Data-Intensive-Computing/Homework/data-intensive-computing/data/processed/ml/fare_feature_dataset",
       "splits": {
         "test": {
@@ -30,7 +30,7 @@
         "train": {
           "first_pickup": "2024-01-01T06:00:00",
           "last_pickup": "2024-03-01T05:59:58",
-          "mean_label": 18.546310748809447,
+          "mean_label": 18.54631074880944,
           "row_count": 5870362
         },
         "validation": {
@@ -45,18 +45,18 @@
   "metrics": {
     "model": {
       "test": {
-        "mae": 6.9969947093673195,
-        "r2": 0.6177630085642893,
-        "rmse": 10.810103704977955
+        "mae": 6.997017299554724,
+        "r2": 0.6177611222391246,
+        "rmse": 10.810130378672486
       },
       "validation": {
-        "mae": 6.806221137212105,
-        "r2": 0.6118107355695719,
-        "rmse": 10.548773361282706
+        "mae": 6.806241429737765,
+        "r2": 0.6118089611658919,
+        "rmse": 10.548797470348305
       }
     },
     "train_mean_baseline": {
-      "prediction": 18.546310748809447,
+      "prediction": 18.54631074880944,
       "test": {
         "mae": 11.190630015547287,
         "r2": -0.0024530314748218984,
@@ -81,8 +81,8 @@
     "LinearRegressionModel"
   ],
   "prediction_task": "fare_amount_regression",
-  "recorded_at": "2026-10-04T08:52:42.481910+00:00",
-  "run_id": "a6d21e03-8d7b-4092-ba4e-8fb644a58aca",
+  "recorded_at": "2026-10-04T10:15:39.250553+00:00",
+  "run_id": "ed575dda-4876-482c-aae0-b26ed6717b3c",
   "spark": {
     "driver_memory": "4g",
     "master": "local[2]",
@@ -92,10 +92,10 @@
   },
   "target": "fare_amount_usd",
   "timings_seconds": {
-    "end_to_end": 28.8887,
-    "evaluate": 0.8653,
-    "fit": 26.7882,
-    "save": 0.8733
+    "end_to_end": 29.4889,
+    "evaluate": 0.915,
+    "fit": 27.2761,
+    "save": 0.9366
   },
   "variant": "platform"
 }

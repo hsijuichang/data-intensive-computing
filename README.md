@@ -494,6 +494,46 @@ Then open `notebooks/w4_task4_compare_approaches.ipynb` and run all cells. It
 compares the two runs at three levels: run configuration, fitted preprocessing
 statistics, and model metrics.
 
+#### Timing experiments
+
+`src/data_intensive_computing/week4/timing.py` runs each workflow end to end
+with `nbconvert`, one fresh kernel per notebook, and appends every run to
+`artifacts/task4_timing_results.jsonl`. Workflows run round-robin with a
+rotating start position; warm-up rounds are recorded but excluded from
+`artifacts/task4_timing_summary.json`.
+
+| Workflow | Notebooks |
+|---|---|
+| `spark_baseline` | `w4_task4_spark_baseline.ipynb` (fixed kernel, JVM, and Spark start-up cost) |
+| `A_dataset` | Approach A dataset, equivalence check disabled |
+| `B_incremental` | `w4_task1.ipynb` |
+| `A_downstream` / `B_downstream` | Task 2 and Task 3 with `WEEK4_VARIANT=raw` / `platform` |
+| `B_full_rebuild` | `ingestion_framework.ipynb`, `integrated_taxi_trips.ipynb`, `w4_task1.ipynb` |
+
+```bash
+uv run python -m data_intensive_computing.week4.timing \
+    --workflows spark_baseline A_dataset B_incremental --warmup 1 --repeats 5
+uv run python -m data_intensive_computing.week4.timing \
+    --workflows A_downstream B_downstream --warmup 1 --repeats 3
+```
+
+`B_full_rebuild` overwrites every platform table, so it must run in a copy of
+the project. The harness refuses to run it against this repository unless
+`--allow-shared-rebuild` is given.
+
+```bash
+rsync -a \
+    --exclude .git --exclude .venv --exclude spark-warehouse \
+    --exclude data/processed --exclude data/processed_backup \
+    --exclude data/failed --exclude data/metadata \
+    --exclude data/models --exclude data/updates \
+    ./ ~/task4_rebuild_copy/
+uv run python -m data_intensive_computing.week4.timing \
+    --workflows B_full_rebuild --project-root ~/task4_rebuild_copy --warmup 1 --repeats 3
+```
+
+Print the summary of all recorded runs with `--summary-only`.
+
 Current result: the Approach A and Approach B training datasets are identical
 row for row and column for column, and the fitted preprocessing statistics are
 identical. Model metrics agree within about `1e-5`; the remaining difference

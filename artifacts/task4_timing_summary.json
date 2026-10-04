@@ -1,0 +1,106 @@
+{
+  "generated_at": "2026-10-04T10:39:34.642909+00:00",
+  "results_path": "/Users/rexchang/Documents/KTH/Courses/26-Fall-P1/Data-Intensive-Computing/Homework/data-intensive-computing/artifacts/task4_timing_results.jsonl",
+  "workflows": {
+    "spark_baseline": {
+      "n": 5,
+      "median_seconds": 5.9715,
+      "min_seconds": 5.8032,
+      "max_seconds": 6.7687,
+      "sessions": [
+        "786b7617ba12"
+      ],
+      "notebook_median_seconds": {
+        "notebooks/w4_task4_spark_baseline.ipynb": 5.9715
+      },
+      "stage_median_seconds": {}
+    },
+    "A_dataset": {
+      "n": 5,
+      "median_seconds": 31.4622,
+      "min_seconds": 29.5817,
+      "max_seconds": 31.8942,
+      "sessions": [
+        "786b7617ba12"
+      ],
+      "notebook_median_seconds": {
+        "notebooks/w4_task4_approach_a_raw_dataset.ipynb": 31.4622
+      },
+      "stage_median_seconds": {
+        "air_quality_prepare": 2.9348,
+        "borough_selection": 0.7592,
+        "session_start_to_dataset_written": 27.5811,
+        "taxi_clean": 11.8492,
+        "weather_prepare": 0.2122,
+        "write_dataset": 7.2233,
+        "zones_prepare": 0.1436
+      }
+    },
+    "B_incremental": {
+      "n": 5,
+      "median_seconds": 20.483,
+      "min_seconds": 20.1913,
+      "max_seconds": 20.5811,
+      "sessions": [
+        "786b7617ba12"
+      ],
+      "notebook_median_seconds": {
+        "notebooks/w4_task1.ipynb": 20.483
+      },
+      "stage_median_seconds": {}
+    },
+    "A_downstream": {
+      "n": 3,
+      "median_seconds": 130.6275,
+      "min_seconds": 127.102,
+      "max_seconds": 134.5121,
+      "sessions": [
+        "534ceb72c6ff"
+      ],
+      "notebook_median_seconds": {
+        "notebooks/w4_task2.ipynb": 89.2434,
+        "notebooks/w4_task3.ipynb": 41.3841
+      },
+      "stage_median_seconds": {
+        "end_to_end": 29.7492,
+        "evaluate": 0.9587,
+        "fit": 27.5191,
+        "save": 0.9162
+      }
+    },
+    "B_downstream": {
+      "n": 3,
+      "median_seconds": 125.713,
+      "min_seconds": 122.7677,
+      "max_seconds": 125.967,
+      "sessions": [
+        "534ceb72c6ff"
+      ],
+      "notebook_median_seconds": {
+        "notebooks/w4_task2.ipynb": 84.97,
+        "notebooks/w4_task3.ipynb": 40.743
+      },
+      "stage_median_seconds": {
+        "end_to_end": 29.2473,
+        "evaluate": 0.8737,
+        "fit": 27.0732,
+        "save": 0.9294
+      }
+    },
+    "B_full_rebuild": {
+      "n": 3,
+      "median_seconds": 294.9234,
+      "min_seconds": 288.9112,
+      "max_seconds": 296.8996,
+      "sessions": [
+        "9d22f937373b"
+      ],
+      "notebook_median_seconds": {
+        "notebooks/ingestion_framework.ipynb": 246.7242,
+        "notebooks/integrated_taxi_trips.ipynb": 28.9177,
+        "notebooks/w4_task1.ipynb": 19.4994
+      },
+      "stage_median_seconds": {}
+    }
+  }
+}
