@@ -1,7 +1,7 @@
 {
   "algorithm": "Spark LinearRegression",
   "features": {
-    "pipeline_path": "D:\\Master\\data intensive\\data-intensive-computing\\data\\models\\fare_feature_pipeline",
+    "pipeline_path": "/Users/rexchang/Documents/KTH/Courses/26-Fall-P1/Data-Intensive-Computing/Homework/data-intensive-computing/data/models/fare_feature_pipeline",
     "source": "Task 2 fitted feature pipeline",
     "vector_dimension": 561
   },
@@ -14,29 +14,29 @@
   },
   "input": {
     "task1_training_dataset": {
-      "delta_version": 2,
-      "path": "D:\\Master\\data intensive\\data-intensive-computing\\data\\processed\\ml\\fare_training_dataset"
+      "delta_version": 0,
+      "path": "/Users/rexchang/Documents/KTH/Courses/26-Fall-P1/Data-Intensive-Computing/Homework/data-intensive-computing/data/processed/ml/fare_training_dataset"
     },
     "task2_feature_dataset": {
-      "delta_version": 0,
-      "path": "D:\\Master\\data intensive\\data-intensive-computing\\data\\processed\\ml\\fare_feature_dataset",
+      "delta_version": 1,
+      "path": "/Users/rexchang/Documents/KTH/Courses/26-Fall-P1/Data-Intensive-Computing/Homework/data-intensive-computing/data/processed/ml/fare_feature_dataset",
       "splits": {
         "test": {
           "first_pickup": "2024-03-16T05:00:00",
           "last_pickup": "2024-04-01T05:59:59",
-          "mean_label": 19.412305108935886,
+          "mean_label": 19.41230510893587,
           "row_count": 1783894
         },
         "train": {
           "first_pickup": "2024-01-01T06:00:00",
           "last_pickup": "2024-03-01T05:59:58",
-          "mean_label": 18.54631074880932,
+          "mean_label": 18.546310748809447,
           "row_count": 5870362
         },
         "validation": {
           "first_pickup": "2024-03-01T06:00:00",
           "last_pickup": "2024-03-16T04:59:59",
-          "mean_label": 19.015878956158584,
+          "mean_label": 19.015878956158712,
           "row_count": 1726201
         }
       }
@@ -45,31 +45,31 @@
   "metrics": {
     "model": {
       "test": {
-        "mae": 6.996983272326323,
-        "r2": 0.617763966297236,
-        "rmse": 10.810090162072443
+        "mae": 6.9969947093673195,
+        "r2": 0.6177630085642893,
+        "rmse": 10.810103704977955
       },
       "validation": {
-        "mae": 6.8062108692577645,
-        "r2": 0.6118116366043727,
-        "rmse": 10.548761118778405
+        "mae": 6.806221137212105,
+        "r2": 0.6118107355695719,
+        "rmse": 10.548773361282706
       }
     },
     "train_mean_baseline": {
-      "prediction": 18.54631074880932,
+      "prediction": 18.546310748809447,
       "test": {
-        "mae": 11.190630015547175,
-        "r2": -0.00245303147480036,
-        "rmse": 17.506346495024125
+        "mae": 11.190630015547287,
+        "r2": -0.0024530314748218984,
+        "rmse": 17.50634649502422
       },
       "validation": {
-        "mae": 10.89899306584715,
-        "r2": -0.0007691959106215229,
-        "rmse": 16.93741645174195
+        "mae": 10.898993065847229,
+        "r2": -0.0007691959105755597,
+        "rmse": 16.937416451741683
       }
     }
   },
-  "model_path": "D:\\Master\\data intensive\\data-intensive-computing\\data\\models\\fare_prediction_pipeline",
+  "model_path": "/Users/rexchang/Documents/KTH/Courses/26-Fall-P1/Data-Intensive-Computing/Homework/data-intensive-computing/data/models/fare_prediction_pipeline",
   "pipeline_stages": [
     "SQLTransformer",
     "ImputerModel",
@@ -81,8 +81,8 @@
     "LinearRegressionModel"
   ],
   "prediction_task": "fare_amount_regression",
-  "recorded_at": "2026-10-01T19:11:22.855591+00:00",
-  "run_id": "748eb2e2-ba1d-46ad-a29a-066823178b95",
+  "recorded_at": "2026-10-04T08:52:42.481910+00:00",
+  "run_id": "a6d21e03-8d7b-4092-ba4e-8fb644a58aca",
   "spark": {
     "driver_memory": "4g",
     "master": "local[2]",
@@ -92,9 +92,10 @@
   },
   "target": "fare_amount_usd",
   "timings_seconds": {
-    "end_to_end": 100.4282,
-    "evaluate": 3.1039,
-    "fit": 88.2416,
-    "save": 7.7032
-  }
+    "end_to_end": 28.8887,
+    "evaluate": 0.8653,
+    "fit": 26.7882,
+    "save": 0.8733
+  },
+  "variant": "platform"
 }
